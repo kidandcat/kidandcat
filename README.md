@@ -9,7 +9,6 @@
 - 🔭 I’m currently working on ]nteracso
 - 🌱 I’m currently learning flutter
 - 👯 I’m looking to collaborate on flutter apps
-- 🤔 I’m looking for help with golang performant screen capture
 - 💬 Ask me about anything
 - 📫 How to reach me: https://kidandcat.me
 - 😄 Pronouns: he/him
