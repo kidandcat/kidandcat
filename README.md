@@ -1,6 +1,6 @@
 ### Hi there 👋
 
-Frontend Engineer (Flutter, RN, web) & System Tools dev (Go, C, C#, Dart, JS)
+Frontend Engineer (Flutter, RN, web) & System Tools (Go, C, C#, Dart, JS)
 
 ![](https://komarev.com/ghpvc/?username=your-github-username)
 
