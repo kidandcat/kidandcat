@@ -6,8 +6,6 @@ Frontend Engineer (Flutter, RN, web) & System Tools (Go, C, C#, Dart, JS)
 
 [![Anurag's github stats](https://github-readme-stats.vercel.app/api?username=kidandcat)](https://github.com/anuraghazra/github-readme-stats)
 
-[![Top Langs](https://github-readme-stats.vercel.app/api/top-langs/?username=kidandcat&layout=compact)](https://github.com/anuraghazra/github-readme-stats)
-
 - 🔭 I’m currently working on ]nteracso
 - 🌱 I’m currently learning illustration
 - 👯 I’m looking to collaborate on Godot games
