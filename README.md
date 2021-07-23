@@ -8,8 +8,8 @@ Frontend Engineer (Flutter, RN, web) & System Tools (Go, Dart, JS)
 
 - 🔭 I’m currently working on ]nteracso
 - 🌱 I’m currently learning illustration
-- 👯 I’m looking to collaborate on Godot games
+- 👯 I’m looking to collaborate on videogames
 - 💬 Ask me about anything
 - 📫 How to reach me: kidandcat@gmail.com
 - 😄 Pronouns: he/him
-- ⚡ Fun fact: I do too many things (paddle, sup, ski, illustration, 3D modeling, fpv drones, fantasy reading, videogaming, japanese...) I really don't know where I get the time from
+- ⚡ Fun fact: I do too many things
