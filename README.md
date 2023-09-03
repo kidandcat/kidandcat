@@ -1,3 +1,3 @@
 ### Hi there 👋
 
-Godot, Go, Pentesting
+Professional jack-of-all-trades-master-of-some
