@@ -1,9 +1,5 @@
 ### Hi there 👋
 
-Professional jack-of-all-trades-master-of-some
+I could be defined as Jack of all trades, puppeteer of integrations.
 
-
-#### Combos
-
-- **Web:** Rails + Bulma + sass cli + devise + kaminari
-- **App:** Flutter + GetX + Pocketbase.io
+Professionally working in Go, JS and solidity. For personal projects I mostly use Ruby and Crystal.
