@@ -6,4 +6,4 @@ Professionally working in Go, JS and solidity. I'm currently learning Crystal an
 I like programming languages. I've dive into JS, TS, Go, Python, Ruby, Crystal, Bash, Rust, Nim, Pony, Factor, C#, C, Dart, GDScript, PHP, SQL, Swift, Julia, Solidity, Bash, Elixir, Powershell, and I'm probably missing some.
 
 
-PD: I drew my avatar, no AI
+PD: I drew my avatar before AI was a thing
