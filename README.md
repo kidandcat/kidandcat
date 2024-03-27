@@ -4,4 +4,4 @@ I like programming languages. I've dive into JS, TS, Go, Python, Ruby, Crystal, 
 
 In a journey to learn Elixir + AI
 
-[![trophy](https://github-profile-trophy.vercel.app/?username=ryo-ma&theme=onedark)](https://github.com/ryo-ma/github-profile-trophy)
+[![trophy](https://github-profile-trophy.vercel.app/?username=kidandcat&theme=onedark)](https://github.com/ryo-ma/github-profile-trophy)
