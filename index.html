@@ -39,7 +39,6 @@ body{
   -webkit-font-smoothing:antialiased;
   transition:background-color .6s ease, color .6s ease;
 }
-
 .bg{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
 .bg .sky{
   position:absolute;inset:-8%;
@@ -50,10 +49,8 @@ body{
 }
 .bg .aura{position:absolute;inset:0;mix-blend-mode:screen;opacity:.85}
 html[data-theme="light"] .bg .aura{mix-blend-mode:multiply;opacity:.45}
-.bg .aura b{position:absolute;border-radius:50%;filter:blur(70px);animation:drift 28s ease-in-out infinite alternate;will-change:transform}
-@media (max-width:820px){
-  .bg .aura b{animation:none;filter:blur(50px)}
-}
+.bg .aura b{position:absolute;border-radius:50%;filter:blur(70px);animation:drift 28s ease-in-out infinite alternate}
+@media (max-width:820px){.bg .aura b{animation:none;filter:blur(50px)}}
 .bg .aura .a1{width:48vmax;height:48vmax;left:40%;top:-20%;background:radial-gradient(circle,var(--accent) 0%,transparent 62%);opacity:.12}
 .bg .aura .a2{width:40vmax;height:40vmax;left:-14%;top:50%;background:radial-gradient(circle,#ffb570 0%,transparent 62%);opacity:.12;animation-delay:-10s}
 .bg .aura .a3{width:36vmax;height:36vmax;left:62%;top:52%;background:radial-gradient(circle,var(--accent-3) 0%,transparent 62%);opacity:.14;animation-delay:-16s}
@@ -65,7 +62,6 @@ html[data-theme="light"] .bg .aura{mix-blend-mode:multiply;opacity:.45}
   background:linear-gradient(180deg, transparent 0%, color-mix(in oklab, var(--bg-0) 55%, transparent) 70%, var(--bg-0) 100%);
   opacity:.85;
 }
-
 .hud{position:fixed;inset:0;z-index:6;pointer-events:none}
 .hud .corner{position:absolute;width:22px;height:22px;border:1.5px solid var(--line-strong)}
 .hud .tl{top:14px;left:14px;border-right:0;border-bottom:0}
@@ -93,16 +89,14 @@ html[data-theme="light"] .bg .aura{mix-blend-mode:multiply;opacity:.45}
 }
 .dot{width:7px;height:7px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 0 var(--glow-a);animation:pulse 2.6s ease-out infinite}
 @keyframes pulse{0%{box-shadow:0 0 0 0 var(--glow-a)}70%{box-shadow:0 0 0 10px transparent}100%{box-shadow:0 0 0 0 transparent}}
-.status{display:flex;align-items:center;gap:9px}
 
 .toggle{
   display:inline-flex;align-items:center;gap:8px;
   font-family:var(--font-mono);font-size:.68rem;letter-spacing:.12em;text-transform:uppercase;
   color:var(--ink-dim);background:var(--panel);border:1px solid var(--panel-brd);
   padding:7px 12px;border-radius:999px;cursor:pointer;backdrop-filter:blur(10px);
-  transition:color .2s,border-color .2s,transform .15s;
 }
-.toggle:hover{color:var(--ink);border-color:var(--line-strong);transform:translateY(-1px)}
+.toggle:hover{color:var(--ink);border-color:var(--line-strong)}
 .toggle:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
 .toggle svg{width:14px;height:14px;display:block}
 .toggle .ti-sun{display:none}
@@ -114,75 +108,44 @@ html[data-theme="light"] .toggle .ti-moon{display:none}
   font-family:var(--font-mono);font-size:.65rem;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-faint);
 }
 .links{display:flex;gap:14px}
-.links a{color:var(--ink-dim);text-decoration:none;transition:color .15s}
+.links a{color:var(--ink-dim);text-decoration:none}
 .links a:hover{color:var(--ink)}
 
-/* Logo badges hanging from branches */
 #ornaments{position:fixed;inset:0;z-index:3;pointer-events:none}
-.orn{
-  position:absolute;left:0;top:0;
-  pointer-events:auto;
-  will-change:transform;
-  text-decoration:none;
-  color:inherit;
-}
+.orn{position:absolute;left:0;top:0;pointer-events:auto;will-change:transform;text-decoration:none;color:inherit}
 .orn::before{
-  content:"";
-  position:absolute;left:50%;top:-30px;
-  width:1px;height:30px;
-  background:linear-gradient(180deg, transparent, var(--string));
-  transform:translateX(-50%);
+  content:"";position:absolute;left:50%;top:-28px;width:1px;height:28px;
+  background:linear-gradient(180deg, transparent, var(--string));transform:translateX(-50%);
 }
 .orn .knot{
-  position:absolute;left:50%;top:-5px;
-  width:6px;height:6px;border-radius:50%;
-  background:color-mix(in oklab, #6b3f2a 70%, var(--accent-3));
-  transform:translateX(-50%);
-  box-shadow:0 0 0 2px color-mix(in oklab, var(--panel) 80%, transparent);
+  position:absolute;left:50%;top:-4px;width:6px;height:6px;border-radius:50%;
+  background:color-mix(in oklab, #6b3f2a 70%, var(--accent-3));transform:translateX(-50%);
 }
 .orn .badge{
-  width:48px;height:48px;border-radius:14px;
-  display:grid;place-items:center;
-  background:var(--badge-bg, #111);
-  border:1.5px solid var(--badge-ring);
-  box-shadow:
-    var(--badge-shadow),
-    0 0 0 1px color-mix(in oklab, var(--brand, #fff) 35%, transparent),
-    0 0 22px -6px color-mix(in oklab, var(--brand, #fff) 55%, transparent);
-  transition:transform .18s cubic-bezier(.2,.7,.3,1), box-shadow .25s;
-  overflow:hidden;
+  width:48px;height:48px;border-radius:14px;display:grid;place-items:center;
+  background:var(--badge-bg, #111);border:1.5px solid var(--badge-ring);
+  box-shadow:var(--badge-shadow),0 0 0 1px color-mix(in oklab, var(--brand,#fff) 35%, transparent),
+    0 0 22px -6px color-mix(in oklab, var(--brand,#fff) 55%, transparent);
+  transition:transform .18s cubic-bezier(.2,.7,.3,1), box-shadow .25s;overflow:hidden;
 }
 .orn:hover .badge{
   transform:scale(1.1);
-  box-shadow:
-    0 16px 36px -10px rgba(0,0,0,.55),
-    0 0 0 2px color-mix(in oklab, var(--brand, #fff) 60%, transparent),
-    0 0 32px -4px color-mix(in oklab, var(--brand, #fff) 70%, transparent);
+  box-shadow:0 16px 36px -10px rgba(0,0,0,.55),0 0 0 2px color-mix(in oklab, var(--brand,#fff) 60%, transparent),
+    0 0 32px -4px color-mix(in oklab, var(--brand,#fff) 70%, transparent);
 }
-.orn:focus-visible{outline:none}
 .orn:focus-visible .badge{outline:2px solid var(--accent);outline-offset:3px}
-.orn .badge img{
-  width:70%;height:70%;object-fit:contain;
-  display:block;
-  /* keep brand colors — don't invert */
-  filter:none;
-}
+.orn .badge img{width:70%;height:70%;object-fit:contain;display:block}
 .orn .label{
-  position:absolute;left:50%;top:calc(100% + 6px);
-  transform:translateX(-50%);
+  position:absolute;left:50%;top:calc(100% + 6px);transform:translateX(-50%);
   font-family:var(--font-mono);font-size:.58rem;letter-spacing:.06em;text-transform:uppercase;
-  color:var(--ink-dim);white-space:nowrap;
-  opacity:0;transition:opacity .2s;
-  pointer-events:none;
+  color:var(--ink-dim);white-space:nowrap;opacity:0;transition:opacity .2s;pointer-events:none;
   text-shadow:0 1px 8px var(--bg-0);
 }
 .orn:hover .label{opacity:1}
-
 @media (max-width:560px){
   .orn .badge{width:40px;height:40px;border-radius:12px}
   .foot .hint{display:none}
 }
-
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{animation:none!important;transition:none!important}
   .dot{box-shadow:none}
@@ -190,25 +153,21 @@ html[data-theme="light"] .toggle .ti-moon{display:none}
 </style>
 </head>
 <body>
-
 <div class="bg" aria-hidden="true">
   <div class="sky"></div>
   <div class="aura"><b class="a1"></b><b class="a2"></b><b class="a3"></b></div>
 </div>
-
 <canvas id="tree" aria-hidden="true"></canvas>
 <div class="ground" aria-hidden="true"></div>
 <div id="ornaments" aria-label="Tools hanging from the tree"></div>
-
 <div class="hud" aria-hidden="true">
   <span class="corner tl"></span><span class="corner tr"></span>
   <span class="corner bl"></span><span class="corner br"></span>
 </div>
-
 <div class="chrome">
   <header class="top">
     <a class="brand" href="/"><span class="dot" aria-hidden="true"></span>kidand<span class="cat">cat</span></a>
-    <span class="status"><span>under the sakura</span></span>
+    <span>under the sakura</span>
     <button class="toggle" id="themeBtn" type="button" aria-label="Toggle color theme" aria-pressed="false">
       <svg class="ti-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
       <svg class="ti-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2v2.4M12 19.6V22M4.2 4.2l1.7 1.7M18.1 18.1l1.7 1.7M2 12h2.4M19.6 12H22M4.2 19.8l1.7-1.7M18.1 5.9l1.7-1.7"/></svg>
@@ -216,7 +175,7 @@ html[data-theme="light"] .toggle .ti-moon{display:none}
     </button>
   </header>
   <footer class="foot">
-    <span class="hint">/// click for wind · tools hang from the branches</span>
+    <span class="hint">/// click for a breeze · tools hang from the branches</span>
     <nav class="links" aria-label="Elsewhere">
       <a href="https://github.com/kidandcat" target="_blank" rel="me noopener noreferrer">github</a>
       <a href="https://x.com/kidandcat" target="_blank" rel="me noopener noreferrer">x</a>
@@ -228,10 +187,15 @@ html[data-theme="light"] .toggle .ti-moon{display:none}
 (function(){
   "use strict";
 
+  /* ============================================================
+     Living sakura via 2D Space Colonization
+     (Runions / algorithmic botany) — rebuild from scratch.
+     Structure is grown once; wind/petals animate cheaply.
+     ============================================================ */
+
   var root = document.documentElement;
   var reduce = window.matchMedia("(prefers-reduced-motion: reduce)");
   var KEY = "kac-theme";
-
   function applyTheme(t){
     root.setAttribute("data-theme", t);
     var m = document.querySelector('meta[name="theme-color"]');
@@ -245,9 +209,9 @@ html[data-theme="light"] .toggle .ti-moon{display:none}
     var next = root.getAttribute("data-theme") === "dark" ? "light" : "dark";
     applyTheme(next);
     try{ localStorage.setItem(KEY, next); }catch(e){}
+    buildSprites(next === "light");
   });
 
-  /* Tools with brand colors + local favicons */
   var TOOLS = [
     { name: "Hyperframes", href: "https://hyperframes.heygen.com/", icon: "icons/hyperframes.png", brand: "#A78BFA", bg: "#14101f" },
     { name: "Impeccable",  href: "https://impeccable.style/",       icon: "icons/impeccable.png",  brand: "#C9A227", bg: "#111111" },
@@ -262,24 +226,26 @@ html[data-theme="light"] .toggle .ti-moon{display:none}
   ];
 
   var canvas = document.getElementById("tree");
-  // desynchronized: lower latency; alpha needed for sky under tree
   var ctx = canvas.getContext("2d", { alpha: true, desynchronized: true });
   var W = 0, H = 0, DPR = 1;
   var t0 = performance.now();
-  var mouse = { x: 0.5, y: 0.4, tx: 0.5, ty: 0.4 };
-  var wind = { v: 0.12, target: 0.12, gustT: 100 };
-  var petals = [], nodes = [], flat = [], hangSlots = [], ornaments = [], blooms = [];
-  var drawOrder = []; // pre-sorted by depth once per build
-  var running = false, raf = null, seed = 20260730;
-  var baseX = 0, baseY = 0;
-  var bloomSprites = []; // pre-rendered soft flowers — stamped with drawImage
+  var mouse = { x: 0.5, y: 0.45, tx: 0.5, ty: 0.45 };
+  var wind = { v: 0.08, target: 0.08, t: 0 };
+  var nodes = [];      // colonization skeleton
+  var segs = [];       // drawable edges parent→child
+  var tips = [];       // leaf nodes
+  var blooms = [];
+  var hangPts = [];
+  var ornaments = [];
+  var petals = [];
+  var bloomSprites = [];
   var petalSprite = null;
-  var quality = 1; // 1 = full, 0.5 = thrifty (only drops falling petals / fine twigs)
-  var skipPetals = false;
-  var MAX_BLOOMS = 2800; // hard safety only — real limit is tip walk after grow
-  var MAX_PETALS = 40;
-  var barkPalette = null;
-  var MOUSE_R = 150; // px: only tips near cursor get a gentle nudge
+  var bark = null;
+  var baseX = 0, baseY = 0;
+  var running = false, raf = null;
+  var seed = 20260731;
+  var MAX_PETALS = 36;
+  var MOUSE_R = 140;
 
   function rand(){
     seed |= 0; seed = seed + 0x6D2B79F5 | 0;
@@ -287,174 +253,296 @@ html[data-theme="light"] .toggle .ti-moon{display:none}
     n = n + Math.imul(n ^ n >>> 7, 61 | n) ^ n;
     return ((n ^ n >>> 14) >>> 0) / 4294967296;
   }
-  function rrange(a, b){ return a + rand() * (b - a); }
+  function rrange(a,b){ return a + rand() * (b - a); }
   function isLight(){ return root.getAttribute("data-theme") === "light"; }
 
-  function makeNode(parent, len, angle, depth, thick){
-    var n = {
-      parent: parent, children: [],
-      len: len, angle0: angle, thick: thick, depth: depth,
-      phase: rrange(0, Math.PI * 2),
-      flex: 0.016 + depth * 0.013,
-      x: 0, y: 0, x2: 0, y2: 0, absAng: 0
-    };
-    nodes.push(n); flat.push(n);
-    if(parent) parent.children.push(n);
-    return n;
-  }
-
+  /* ---------- Space colonization (2D) ----------
+     Attractors cloud = sakura crown (wide ellipsoid).
+     Nodes grow toward nearest attractors; kill radius
+     removes them → natural, non-fractal silhouette.
+     Ref: Runions et al. "Modeling Trees with a Space
+     Colonization Algorithm" (algorithmicbotany.org).
+  */
   function buildTree(){
-    nodes = []; flat = []; hangSlots = []; blooms = []; drawOrder = [];
-    seed = 20260730;
+    nodes = []; segs = []; tips = []; blooms = []; hangPts = [];
+    seed = 20260731;
 
     var mobile = W < 720;
-    var hiDpr = (window.devicePixelRatio || 1) > 1.5;
     baseX = W * 0.52;
-    baseY = H * 0.96;
-    var scale = Math.min(W, H) / (mobile ? 420 : 700);
-    // slightly shallower on heavy displays — still dense, fewer draw calls
-    var maxDepth = mobile ? 8 : (hiDpr ? 9 : 10);
+    baseY = H * 0.94;
 
-    var trunkLen = Math.min(H * (mobile ? 0.22 : 0.28), mobile ? 170 : 260);
-    var trunk = makeNode(null, trunkLen, -Math.PI / 2, 0, (mobile ? 16 : 26) * scale);
+    // Crown envelope — wide, low (classic flowering cherry)
+    var crownCX = baseX;
+    var crownCY = H * (mobile ? 0.40 : 0.36);
+    var crownRX = Math.min(W, H) * (mobile ? 0.42 : 0.46);
+    var crownRY = Math.min(W, H) * (mobile ? 0.28 : 0.32);
 
-    function grow(node, depth){
-      if(depth >= maxDepth || node.len < 10 * scale){
-        // hang candidates only here; blossoms are placed in a fair pass after grow
-        if(depth >= 3) hangSlots.push({ node: node, along: 0.9, prefer: depth <= 6 ? 1 : 0.35 });
-        return;
-      }
+    var nAttract = mobile ? 520 : 900;
+    var attractors = [];
+    for(var i = 0; i < nAttract; i++){
+      // rejection sample in ellipse + denser rim (flowers live outside)
+      var ang = rand() * Math.PI * 2;
+      var rad = Math.sqrt(rand()); // uniform disk, then bias to rim
+      if(rand() < 0.45) rad = 0.55 + rad * 0.45; // outer bias
+      var ax = crownCX + Math.cos(ang) * rad * crownRX;
+      var ay = crownCY + Math.sin(ang) * rad * crownRY;
+      // keep above a little above ground
+      if(ay > baseY - H * 0.12) continue;
+      attractors.push({ x: ax, y: ay, alive: true });
+    }
+    // a few low weepers on the sides
+    for(var w = 0; w < (mobile ? 40 : 70); w++){
+      var side = rand() < 0.5 ? -1 : 1;
+      attractors.push({
+        x: baseX + side * rrange(crownRX * 0.55, crownRX * 1.05),
+        y: baseY - rrange(H * 0.18, H * 0.42),
+        alive: true
+      });
+    }
 
-      var childCount;
-      if(depth === 0) childCount = 1;
-      else if(depth === 1) childCount = mobile ? 5 : 6;
-      else if(depth === 2) childCount = 3 + (rand() < 0.5 ? 1 : 0);
-      else if(depth < 5) childCount = rand() < 0.65 ? 2 : 3;
-      else if(depth < 8) childCount = rand() < 0.5 ? 2 : 1;
-      else childCount = rand() < 0.4 ? 2 : 1;
+    // Seed trunk: vertical chain from ground into crown
+    var trunkSteps = mobile ? 7 : 9;
+    var trunkLen = (baseY - (crownCY + crownRY * 0.35)) / trunkSteps;
+    var prev = null;
+    for(var t = 0; t <= trunkSteps; t++){
+      var node = {
+        x: baseX + (rand() - 0.5) * 2,
+        y: baseY - t * trunkLen,
+        parent: prev,
+        children: [],
+        depth: t,
+        phase: rand() * Math.PI * 2,
+        flex: 0.01 + t * 0.004,
+        thick: 0,
+        rx: 0, ry: 0
+      };
+      if(prev) prev.children.push(node);
+      nodes.push(node);
+      prev = node;
+    }
 
-      if(depth === 0){
-        var cont = makeNode(node, node.len * 0.78, rrange(-0.05, 0.05), 1, node.thick * 0.8);
-        hangSlots.push({ node: cont, along: 0.5, prefer: 1.1 });
-        grow(cont, 1);
+    // Colonization params (scaled to viewport)
+    var stepLen = Math.min(W, H) * (mobile ? 0.011 : 0.010);
+    var influence = Math.min(W, H) * (mobile ? 0.085 : 0.08);
+    var kill = Math.min(W, H) * (mobile ? 0.024 : 0.022);
+    var influence2 = influence * influence;
+    var kill2 = kill * kill;
+    var maxNodes = mobile ? 1100 : 2000;
+    var maxIter = mobile ? 110 : 160;
 
-        var limbs = mobile ? 4 : 5;
-        for(var L = 0; L < limbs; L++){
-          var side = L % 2 === 0 ? -1 : 1;
-          var elev = 0.55 + L * 0.12 + rrange(-0.05, 0.05);
-          var ang = side * elev + rrange(-0.06, 0.06);
-          var len = node.len * (0.55 + rand() * 0.22);
-          var limb = makeNode(node, len, ang, 1, node.thick * (0.42 + rand() * 0.1));
-          hangSlots.push({ node: limb, along: 0.85, prefer: 1.3 });
-          grow(limb, 2);
+    for(var iter = 0; iter < maxIter && nodes.length < maxNodes; iter++){
+      // nearest node per attractor
+      var pull = new Map(); // nodeIndex → {sx, sy, n}
+      var any = false;
+      for(var a = 0; a < attractors.length; a++){
+        var at = attractors[a];
+        if(!at.alive) continue;
+        var best = -1, bestD = influence2;
+        for(var ni = 0; ni < nodes.length; ni++){
+          var nd = nodes[ni];
+          var dx = at.x - nd.x, dy = at.y - nd.y;
+          var d2 = dx * dx + dy * dy;
+          if(d2 < bestD){ bestD = d2; best = ni; }
         }
-        return;
+        if(best < 0) continue;
+        any = true;
+        var bx = at.x - nodes[best].x;
+        var by = at.y - nodes[best].y;
+        var bl = Math.sqrt(bx * bx + by * by) || 1;
+        var p = pull.get(best);
+        if(!p){ p = { sx: 0, sy: 0, n: 0 }; pull.set(best, p); }
+        p.sx += bx / bl;
+        p.sy += by / bl;
+        p.n++;
       }
+      if(!any) break;
 
-      for(var i = 0; i < childCount; i++){
-        var spread;
-        if(depth === 1){
-          spread = -1.15 + (i / Math.max(1, childCount - 1)) * 2.3 + rrange(-0.07, 0.07);
-        } else {
-          var fan = 0.42 + rand() * 0.38;
-          spread = (i - (childCount - 1) / 2) * fan + rrange(-0.1, 0.1);
+      // grow
+      var grew = false;
+      pull.forEach(function(p, idx){
+        if(nodes.length >= maxNodes) return;
+        var src = nodes[idx];
+        var lx = p.sx / p.n, ly = p.sy / p.n;
+        var ll = Math.sqrt(lx * lx + ly * ly) || 1;
+        lx /= ll; ly /= ll;
+        // slight random wobble + phototropism (up)
+        lx += (rand() - 0.5) * 0.18;
+        ly += (rand() - 0.5) * 0.18 - 0.08;
+        ll = Math.sqrt(lx * lx + ly * ly) || 1;
+        lx /= ll; ly /= ll;
+
+        var child = {
+          x: src.x + lx * stepLen,
+          y: src.y + ly * stepLen,
+          parent: src,
+          children: [],
+          depth: src.depth + 1,
+          phase: rand() * Math.PI * 2,
+          flex: 0.012 + Math.min(0.04, src.depth * 0.002),
+          thick: 0,
+          rx: 0, ry: 0
+        };
+        src.children.push(child);
+        nodes.push(child);
+        grew = true;
+      });
+      if(!grew) break;
+
+      // kill attractors near any node
+      for(var k = 0; k < attractors.length; k++){
+        var att = attractors[k];
+        if(!att.alive) continue;
+        for(var nj = 0; nj < nodes.length; nj++){
+          var dx2 = att.x - nodes[nj].x;
+          var dy2 = att.y - nodes[nj].y;
+          if(dx2 * dx2 + dy2 * dy2 < kill2){ att.alive = false; break; }
         }
-        var shrink = depth === 1 ? 0.74 : (0.68 + rand() * 0.14);
-        if(depth === 1 && Math.abs(spread) > 0.7) shrink *= 1.1;
-        var nextLen = node.len * shrink;
-        var nextThick = Math.max(0.9 * scale, node.thick * (depth < 3 ? 0.64 : 0.7));
-        var child = makeNode(node, nextLen, spread, depth + 1, nextThick);
-
-        if(depth >= 1 && depth <= 5 && rand() < 0.5){
-          hangSlots.push({
-            node: child,
-            along: 0.72 + rand() * 0.22,
-            prefer: (depth <= 3 ? 1.0 : 0.45) + (Math.abs(spread) > 0.5 ? 0.35 : 0)
-          });
-        }
-
-        grow(child, depth + 1);
-      }
-
-      if(depth > 1 && depth < 7 && rand() < 0.35){
-        var spur = makeNode(node, node.len * rrange(0.35, 0.5),
-          (rand() < 0.5 ? -1 : 1) * rrange(0.5, 1.0), depth + 2, node.thick * 0.55);
-        grow(spur, depth + 2);
       }
     }
 
-    grow(trunk, 0);
-    poseRest();
-
-    // Fair blossom pass: every tip / outer limb gets flowers (no left-first starvation)
-    placeBloomsEvenly(scale);
-
-    drawOrder = flat.slice().sort(function(a, b){ return a.depth - b.depth; });
-    for(var di = 0; di < drawOrder.length; di++){
-      var dn = drawOrder[di];
-      dn.lw = Math.max(0.7, dn.thick * (1 - dn.depth * 0.012));
+    // thickness from leaf mass (pipe model): leaves=1, parent = sum children
+    function mass(n){
+      if(!n.children.length){ n._m = 1; return 1; }
+      var s = 0;
+      for(var c = 0; c < n.children.length; c++) s += mass(n.children[c]);
+      n._m = s;
+      return s;
+    }
+    mass(nodes[0]);
+    var maxM = nodes[0]._m || 1;
+    for(var ti = 0; ti < nodes.length; ti++){
+      var thN = nodes[ti];
+      // area ~ mass → radius ~ sqrt
+      thN.thick = 1.2 + Math.sqrt(thN._m / maxM) * Math.min(W, H) * 0.028;
+      thN.rx = thN.x; thN.ry = thN.y; // rest pose
+      if(!thN.children.length) tips.push(thN);
     }
 
-    hangSlots.forEach(function(s){
-      var p = pointOn(s.node, s.along);
-      s.score = (s.prefer || 0.5)
-        + (p.y / H) * 0.7
-        + Math.abs(p.x - baseX) / W * 0.45
-        - (p.y < H * 0.18 ? 1.4 : 0);
-    });
-    hangSlots.sort(function(a, b){ return b.score - a.score; });
+    // drawable segments (parent → child), thick first
+    for(var si = 1; si < nodes.length; si++){
+      var ch = nodes[si];
+      if(!ch.parent) continue;
+      segs.push({
+        a: ch.parent,
+        b: ch,
+        depth: ch.depth,
+        lw: Math.max(0.8, (ch.parent.thick + ch.thick) * 0.5)
+      });
+    }
+    segs.sort(function(u, v){ return u.depth - v.depth; });
+
+    placeBlooms();
+    pickHangPoints();
     assignOrnaments();
   }
 
-  function placeBloomsEvenly(scale){
+  function placeBlooms(){
     blooms = [];
-    // Pass 1 — every leaf tip gets a base cluster (covers whole canopy)
-    var tips = [];
-    for(var i = 0; i < flat.length; i++){
-      var n = flat[i];
-      if(!n.children.length && n.depth >= 2) tips.push(n);
+    // every tip: cluster
+    for(var i = 0; i < tips.length; i++){
+      var tip = tips[i];
+      var n = 5 + (rand() * 6 | 0);
+      for(var j = 0; j < n; j++){
+        blooms.push({
+          node: tip,
+          along: 0.5 + rand() * 0.48,
+          ox: rrange(-14, 14),
+          oy: rrange(-12, 11),
+          r: rrange(3.5, 7.2),
+          sprite: (rand() * 8) | 0,
+          tw: rand() * Math.PI * 2,
+          tws: rrange(0.5, 1.3)
+        });
+      }
     }
-    // shuffle so neither side is preferred if we hit MAX
-    for(var s = tips.length - 1; s > 0; s--){
-      var j = (rand() * (s + 1)) | 0;
-      var tmp = tips[s]; tips[s] = tips[j]; tips[j] = tmp;
-    }
-    for(var t = 0; t < tips.length; t++){
-      addCluster(tips[t], scale, true, 5 + (rand() * 5 | 0));
-    }
-    // Pass 2 — mid outer limbs for denser canopy (still shuffled)
-    var mids = [];
-    for(var m = 0; m < flat.length; m++){
-      var nd = flat[m];
-      if(nd.depth >= 3 && nd.depth <= 6 && nd.children.length) mids.push(nd);
-    }
-    for(var u = mids.length - 1; u > 0; u--){
-      var v = (rand() * (u + 1)) | 0;
-      var tmp2 = mids[u]; mids[u] = mids[v]; mids[v] = tmp2;
-    }
-    for(var k = 0; k < mids.length; k++){
-      if(rand() < 0.55) addCluster(mids[k], scale, false, 2 + (rand() * 3 | 0));
+    // outer mid-nodes — denser canopy fill
+    for(var k = 0; k < nodes.length; k++){
+      var nd = nodes[k];
+      if(nd.depth < 5) continue;
+      if(rand() > (nd.children.length ? 0.5 : 0.15)) continue;
+      var m = 2 + (rand() * 4 | 0);
+      for(var p = 0; p < m; p++){
+        blooms.push({
+          node: nd,
+          along: 0.25 + rand() * 0.7,
+          ox: rrange(-16, 16),
+          oy: rrange(-14, 12),
+          r: rrange(3.2, 6.8),
+          sprite: (rand() * 8) | 0,
+          tw: rand() * Math.PI * 2,
+          tws: rrange(0.5, 1.3)
+        });
+      }
     }
   }
 
-  function addCluster(node, scale, isTip, count){
-    if(blooms.length >= MAX_BLOOMS) return;
-    var n = count != null ? count : (isTip ? (5 + (rand() * 5 | 0)) : (2 + (rand() * 3 | 0)));
-    for(var i = 0; i < n && blooms.length < MAX_BLOOMS; i++){
-      blooms.push({
-        node: node,
-        along: isTip ? (0.45 + rand() * 0.52) : (0.2 + rand() * 0.7),
-        ox: rrange(-16, 16) * scale,
-        oy: rrange(-14, 12) * scale,
-        r: rrange(3.4, 8.0) * scale * (isTip ? 1 : 0.9),
-        sprite: (rand() * 8) | 0,
-        tw: rrange(0, Math.PI * 2),
-        tws: rrange(0.4, 1.2)
+  function pickHangPoints(){
+    hangPts = [];
+    for(var i = 0; i < nodes.length; i++){
+      var n = nodes[i];
+      if(n.depth < 3) continue;
+      if(n.ry < H * 0.15 || n.ry > H * 0.78) continue;
+      var outward = Math.abs(n.rx - baseX) / Math.max(1, W * 0.45);
+      var score = outward * 0.55 + (n.ry / H) * 0.35 + rand() * 0.3;
+      if(!n.children.length) score += 0.25;
+      hangPts.push({ node: n, score: score });
+    }
+    hangPts.sort(function(a, b){ return b.score - a.score; });
+  }
+
+  function assignOrnaments(){
+    var host = document.getElementById("ornaments");
+    host.innerHTML = "";
+    ornaments = [];
+    var chosen = [];
+    var minD = Math.max(58, W * 0.055);
+
+    for(var i = 0; i < hangPts.length && chosen.length < TOOLS.length; i++){
+      var hp = hangPts[i];
+      var ok = true;
+      for(var j = 0; j < chosen.length; j++){
+        var dx = hp.node.rx - chosen[j].node.rx;
+        var dy = hp.node.ry - chosen[j].node.ry;
+        if(dx * dx + dy * dy < minD * minD){ ok = false; break; }
+      }
+      if(ok) chosen.push(hp);
+    }
+    // fallback: any mid nodes if still short
+    if(chosen.length < TOOLS.length){
+      for(var f = 0; f < nodes.length && chosen.length < TOOLS.length; f++){
+        var nn = nodes[f];
+        if(nn.depth < 4 || nn.ry > H * 0.8) continue;
+        var used = false;
+        for(var c = 0; c < chosen.length; c++) if(chosen[c].node === nn){ used = true; break; }
+        if(!used) chosen.push({ node: nn, score: 0 });
+      }
+    }
+
+    for(var t = 0; t < TOOLS.length && t < chosen.length; t++){
+      var tool = TOOLS[t];
+      var a = document.createElement("a");
+      a.className = "orn";
+      a.href = tool.href;
+      a.target = "_blank";
+      a.rel = "noopener noreferrer";
+      a.title = tool.name;
+      a.innerHTML = '<span class="knot" aria-hidden="true"></span><span class="badge"><img alt="" width="32" height="32" decoding="async"></span><span class="label"></span>';
+      a.style.setProperty("--brand", tool.brand);
+      a.querySelector(".badge").style.background = tool.bg;
+      var img = a.querySelector("img");
+      img.src = tool.icon; img.alt = tool.name;
+      a.querySelector(".label").textContent = tool.name;
+      host.appendChild(a);
+      ornaments.push({
+        el: a,
+        node: chosen[t].node,
+        swing: 0, swingV: 0,
+        drop: 26 + (t % 4) * 7
       });
     }
   }
 
-  /* Pre-render soft blossoms once — drawImage is ~50× cheaper than gradients/frame */
+  /* ---------- sprites ---------- */
   function buildSprites(light){
     bloomSprites = [];
     var size = 64;
@@ -462,267 +550,200 @@ html[data-theme="light"] .toggle .ti-moon{display:none}
       var c = document.createElement("canvas");
       c.width = size; c.height = size;
       var g = c.getContext("2d");
-      var cx = size / 2, cy = size / 2, R = 18 + (s % 3) * 2;
-      var pinkA = light ? "255,175,200" : "255,150,190";
-      var pinkB = light ? "255,145,180" : "255,120,170";
-      var pinkC = light ? "255,215,230" : "255,190,215";
-      var rot = s * 0.4;
+      var cx = size / 2, cy = size / 2, R = 17 + (s % 3) * 2;
+      var pinkA = light ? "255,175,200" : "255,155,195";
+      var pinkB = light ? "255,140,175" : "255,115,165";
+      var pinkC = light ? "255,220,232" : "255,195,218";
+      var rot = s * 0.45;
 
-      var haze = g.createRadialGradient(cx, cy, 0, cx, cy, R * 1.6);
-      haze.addColorStop(0, "rgba(" + pinkA + ",0.2)");
+      var haze = g.createRadialGradient(cx, cy, 0, cx, cy, R * 1.55);
+      haze.addColorStop(0, "rgba(" + pinkA + ",0.22)");
       haze.addColorStop(1, "rgba(" + pinkB + ",0)");
       g.fillStyle = haze;
-      g.beginPath(); g.arc(cx, cy, R * 1.6, 0, Math.PI * 2); g.fill();
+      g.beginPath(); g.arc(cx, cy, R * 1.55, 0, Math.PI * 2); g.fill();
 
       for(var i = 0; i < 5; i++){
-        var a = (i / 5) * Math.PI * 2 + rot;
-        var px = cx + Math.cos(a) * R * 0.38;
-        var py = cy + Math.sin(a) * R * 0.34;
-        var pr = R * 0.5;
+        var ang = (i / 5) * Math.PI * 2 + rot;
+        var px = cx + Math.cos(ang) * R * 0.38;
+        var py = cy + Math.sin(ang) * R * 0.34;
+        var pr = R * 0.48;
         var pg = g.createRadialGradient(px, py, 0, px, py, pr);
-        pg.addColorStop(0, "rgba(" + pinkC + ",0.7)");
-        pg.addColorStop(0.65, "rgba(" + pinkA + ",0.35)");
+        pg.addColorStop(0, "rgba(" + pinkC + ",0.75)");
+        pg.addColorStop(0.6, "rgba(" + pinkA + ",0.38)");
         pg.addColorStop(1, "rgba(" + pinkB + ",0)");
         g.fillStyle = pg;
         g.beginPath(); g.arc(px, py, pr, 0, Math.PI * 2); g.fill();
       }
-      g.fillStyle = light ? "rgba(255,235,245,0.55)" : "rgba(255,220,235,0.5)";
-      g.beginPath(); g.arc(cx, cy, R * 0.18, 0, Math.PI * 2); g.fill();
+      g.fillStyle = light ? "rgba(255,236,245,0.6)" : "rgba(255,222,236,0.55)";
+      g.beginPath(); g.arc(cx, cy, R * 0.16, 0, Math.PI * 2); g.fill();
       if(s > 3){
         g.fillStyle = light ? "rgba(255,205,90,0.55)" : "rgba(255,190,80,0.45)";
-        g.beginPath(); g.arc(cx, cy, 1.2, 0, Math.PI * 2); g.fill();
+        g.beginPath(); g.arc(cx, cy, 1.1, 0, Math.PI * 2); g.fill();
       }
       bloomSprites.push(c);
     }
 
-    // falling petal sprite
     petalSprite = document.createElement("canvas");
     petalSprite.width = 24; petalSprite.height = 24;
-    var pctx = petalSprite.getContext("2d");
-    pctx.translate(12, 12);
-    pctx.fillStyle = light ? "rgba(233,145,180,0.9)" : "rgba(255,170,200,0.9)";
-    pctx.beginPath();
-    pctx.moveTo(0, -8);
-    pctx.bezierCurveTo(5, -4, 4, 5, 0, 8);
-    pctx.bezierCurveTo(-4, 5, -5, -4, 0, -8);
-    pctx.fill();
+    var p = petalSprite.getContext("2d");
+    p.translate(12, 12);
+    p.fillStyle = light ? "rgba(233,145,180,0.92)" : "rgba(255,170,200,0.92)";
+    p.beginPath();
+    p.moveTo(0, -8);
+    p.bezierCurveTo(5, -4, 4, 5, 0, 8);
+    p.bezierCurveTo(-4, 5, -5, -4, 0, -8);
+    p.fill();
 
-    barkPalette = light
-      ? ["#4a2c22", "#5c382c", "#6e4638", "rgba(120,78,62,0.82)"]
-      : ["#2a1a18", "#3a2622", "#4a322c", "rgba(88,60,54,0.85)"];
+    bark = light
+      ? ["#4a2c22", "#5c382c", "#6e4638", "rgba(120,78,62,0.85)"]
+      : ["#2a1a18", "#3a2622", "#4a322c", "rgba(90,62,56,0.88)"];
   }
 
-  function poseRest(){
-    for(var i = 0; i < flat.length; i++){
-      var n = flat[i];
-      if(!n.parent){ n.x = baseX; n.y = baseY; n.absAng = n.angle0; }
-      else { n.x = n.parent.x2; n.y = n.parent.y2; n.absAng = n.parent.absAng + n.angle0; }
-      n.x2 = n.x + Math.cos(n.absAng) * n.len;
-      n.y2 = n.y + Math.sin(n.absAng) * n.len;
-      // freeze rest tips for mouse proximity (stable, not thrashing with wind)
-      n.rx2 = n.x2; n.ry2 = n.y2;
-    }
-  }
-
-  function pointOn(node, along){
-    return {
-      x: node.x + (node.x2 - node.x) * along,
-      y: node.y + (node.y2 - node.y) * along
-    };
-  }
-
-  function assignOrnaments(){
-    var host = document.getElementById("ornaments");
-    host.innerHTML = "";
-    ornaments = [];
-
-    var chosen = [];
-    var minDx = Math.max(72, W * 0.07);
-    var toolLimit = TOOLS.length;
-
-    for(var i = 0; i < hangSlots.length && chosen.length < toolLimit; i++){
-      var s = hangSlots[i];
-      var p = pointOn(s.node, s.along);
-      if(p.x < 50 || p.x > W - 50 || p.y < 48 || p.y > H * 0.78) continue;
-      var ok = true;
-      for(var j = 0; j < chosen.length; j++){
-        var q = pointOn(chosen[j].node, chosen[j].along);
-        if(Math.abs(q.x - p.x) < minDx && Math.abs(q.y - p.y) < 56){ ok = false; break; }
-      }
-      if(ok) chosen.push(s);
-    }
-    for(var k = 0; k < hangSlots.length && chosen.length < toolLimit; k++){
-      if(chosen.indexOf(hangSlots[k]) === -1){
-        var pp = pointOn(hangSlots[k].node, hangSlots[k].along);
-        if(pp.x > 40 && pp.x < W - 40 && pp.y < H * 0.8) chosen.push(hangSlots[k]);
-      }
-    }
-
-    for(var t = 0; t < toolLimit && t < chosen.length; t++){
-      var tool = TOOLS[t];
-      var slot = chosen[t];
-      var a = document.createElement("a");
-      a.className = "orn";
-      a.href = tool.href;
-      a.target = "_blank";
-      a.rel = "noopener noreferrer";
-      a.title = tool.name;
-      a.innerHTML =
-        '<span class="knot" aria-hidden="true"></span>' +
-        '<span class="badge"><img alt="" width="32" height="32" decoding="async"></span>' +
-        '<span class="label"></span>';
-      a.style.setProperty("--brand", tool.brand);
-      a.querySelector(".badge").style.setProperty("--badge-bg", tool.bg);
-      a.querySelector(".badge").style.background = tool.bg;
-      var img = a.querySelector("img");
-      img.src = tool.icon;
-      img.alt = tool.name;
-      a.querySelector(".label").textContent = tool.name;
-      host.appendChild(a);
-      ornaments.push({ el: a, slot: slot, swing: 0, swingV: 0, drop: 28 + (t % 4) * 7 });
-    }
-  }
-
-  function animateStructure(time){
-    // Soft ambient breeze only — trunk barely moves; tips flutter a little.
-    // Mouse only nudges nearby tips (distance falloff), never the whole tree.
-    var gust = wind.v * 0.35;
-    var breeze = Math.sin(time * 0.7) * 0.22 + Math.sin(time * 0.27) * 0.12 + gust;
+  /* ---------- wind: FK-ish from root using rest pose + local tip sway ---------- */
+  function animate(time){
+    var breeze = Math.sin(time * 0.65) * 0.35 + Math.sin(time * 0.23) * 0.18 + wind.v * 0.5;
     var curX = mouse.x * W;
     var curY = mouse.y * H;
     var r2 = MOUSE_R * MOUSE_R;
 
-    for(var i = 0; i < flat.length; i++){
-      var n = flat[i];
-      // depth scale: roots ~0, outer twigs full flutter
-      var depthAmp = n.depth < 2 ? 0.04 : (n.depth < 4 ? 0.2 : 1);
-      var localWind = (breeze + Math.sin(time * 0.9 + n.phase) * 0.18) * n.flex * depthAmp * 0.55;
+    // root fixed
+    var rootN = nodes[0];
+    if(!rootN) return;
+    rootN.x = rootN.rx;
+    rootN.y = rootN.ry;
 
-      // mouse: only leaf tips near the cursor (rest position → stable falloff)
-      if(n.depth >= 5 && !n.children.length && n.rx2 != null){
-        var dx = n.rx2 - curX;
-        var dy = n.ry2 - curY;
+    // process in creation order (parents before children)
+    for(var i = 1; i < nodes.length; i++){
+      var n = nodes[i];
+      var par = n.parent;
+      // rest offset parent→child
+      var ox = n.rx - par.rx;
+      var oy = n.ry - par.ry;
+      var len = Math.sqrt(ox * ox + oy * oy) || 1;
+      var ang = Math.atan2(oy, ox);
+
+      // ambient sway grows with depth; trunk almost still
+      var depthAmp = n.depth < 3 ? 0.05 : (n.depth < 6 ? 0.25 : 1);
+      var sway = (breeze + Math.sin(time * 0.85 + n.phase) * 0.35) * n.flex * depthAmp * 0.9;
+
+      // mouse: only tips near cursor
+      if(!n.children.length && n.depth >= 5){
+        var dx = n.rx - curX, dy = n.ry - curY;
         var d2 = dx * dx + dy * dy;
         if(d2 < r2){
           var fall = 1 - d2 / r2;
-          fall = fall * fall;
-          localWind += fall * 0.014 * (dx > 0 ? 0.35 : -0.35);
-          localWind += fall * Math.sin(time * 2.2 + n.phase) * 0.01;
+          fall *= fall;
+          sway += fall * 0.035 * (dx > 0 ? 0.4 : -0.4);
+          sway += fall * Math.sin(time * 2 + n.phase) * 0.02;
         }
       }
 
-      if(!n.parent){
-        n.x = baseX; n.y = baseY;
-        n.absAng = n.angle0 + localWind * 0.15;
-      } else {
-        n.x = n.parent.x2; n.y = n.parent.y2;
-        n.absAng = n.parent.absAng + n.angle0 + localWind;
-      }
-      n.x2 = n.x + Math.cos(n.absAng) * n.len;
-      n.y2 = n.y + Math.sin(n.absAng) * n.len;
+      ang += sway;
+      n.x = par.x + Math.cos(ang) * len;
+      n.y = par.y + Math.sin(ang) * len;
     }
   }
 
-  function barkColor(depth){
-    if(depth < 1) return barkPalette[0];
-    if(depth < 3) return barkPalette[1];
-    if(depth < 5) return barkPalette[2];
-    return barkPalette[3];
-  }
-
-  function drawTree(time){
+  function draw(time){
     ctx.clearRect(0, 0, W, H);
 
-    ctx.fillStyle = isLight() ? "rgba(40,30,50,0.08)" : "rgba(0,0,0,0.28)";
+    // soft ground shadow
+    ctx.fillStyle = isLight() ? "rgba(40,30,50,0.1)" : "rgba(0,0,0,0.32)";
     ctx.beginPath();
-    ctx.ellipse(baseX, baseY - 2, Math.min(W, H) * 0.14, Math.min(W, H) * 0.025, 0, 0, Math.PI * 2);
+    ctx.ellipse(baseX, baseY - 2, Math.min(W, H) * 0.15, Math.min(W, H) * 0.028, 0, 0, Math.PI * 2);
     ctx.fill();
 
+    // soft pink canopy glow
+    var g = ctx.createRadialGradient(baseX, H * 0.36, 10, baseX, H * 0.36, Math.min(W, H) * 0.4);
+    if(isLight()){
+      g.addColorStop(0, "rgba(255,175,200,0.10)");
+      g.addColorStop(1, "rgba(255,200,220,0)");
+    } else {
+      g.addColorStop(0, "rgba(255,100,160,0.08)");
+      g.addColorStop(1, "rgba(0,0,0,0)");
+    }
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, W, H);
+
+    // branches
     ctx.lineCap = "round";
     ctx.lineJoin = "round";
-    var lastStyle = "";
-    var step = quality < 1 ? 2 : 1;
-    for(var i = 0; i < drawOrder.length; i++){
-      var n = drawOrder[i];
-      if(step > 1 && n.depth > 6 && (i & 1)) continue;
-      var style = barkColor(n.depth);
-      if(style !== lastStyle){ ctx.strokeStyle = style; lastStyle = style; }
-      ctx.lineWidth = n.lw;
+    var last = "";
+    for(var i = 0; i < segs.length; i++){
+      var s = segs[i];
+      var d = s.depth;
+      var col = d < 3 ? bark[0] : d < 6 ? bark[1] : d < 10 ? bark[2] : bark[3];
+      if(col !== last){ ctx.strokeStyle = col; last = col; }
+      ctx.lineWidth = s.lw * (1 - Math.min(0.35, d * 0.015));
       ctx.beginPath();
-      ctx.moveTo(n.x, n.y);
-      if(n.depth < 4){
-        var mx2 = (n.x + n.x2) * 0.5 + Math.sin(time * 0.7 + n.phase) * 1.2;
-        var my2 = (n.y + n.y2) * 0.5;
-        ctx.quadraticCurveTo(mx2, my2, n.x2, n.y2);
+      ctx.moveTo(s.a.x, s.a.y);
+      // organic midpoint for thicker limbs
+      if(d < 8){
+        var mx = (s.a.x + s.b.x) * 0.5 + Math.sin(time * 0.5 + s.b.phase) * 1.1;
+        var my = (s.a.y + s.b.y) * 0.5;
+        ctx.quadraticCurveTo(mx, my, s.b.x, s.b.y);
       } else {
-        ctx.lineTo(n.x2, n.y2);
+        ctx.lineTo(s.b.x, s.b.y);
       }
       ctx.stroke();
     }
 
-    // Always draw every bloom (sprites are cheap) — never starve half the canopy
-    var sprites = bloomSprites;
-    if(!sprites.length) return;
+    // blossoms (sprite stamps)
+    if(!bloomSprites.length) return;
     for(var b = 0; b < blooms.length; b++){
       var bl = blooms[b];
       var nd = bl.node;
-      var bx = nd.x + (nd.x2 - nd.x) * bl.along + bl.ox;
-      var by = nd.y + (nd.y2 - nd.y) * bl.along + bl.oy;
-      var r = bl.r;
-      if(quality >= 1) r *= 0.98 + Math.sin(time * bl.tws + bl.tw) * 0.02;
-      var spr = sprites[bl.sprite];
-      var sz = r * 3.4;
-      ctx.drawImage(spr, bx - sz * 0.5, by - sz * 0.5, sz, sz);
+      var par = nd.parent;
+      var bx, by;
+      if(par){
+        bx = par.x + (nd.x - par.x) * bl.along + bl.ox;
+        by = par.y + (nd.y - par.y) * bl.along + bl.oy;
+      } else {
+        bx = nd.x + bl.ox; by = nd.y + bl.oy;
+      }
+      var r = bl.r * (0.98 + Math.sin(time * bl.tws + bl.tw) * 0.02);
+      var sz = r * 3.2;
+      ctx.drawImage(bloomSprites[bl.sprite], bx - sz * 0.5, by - sz * 0.5, sz, sz);
     }
   }
 
-  function spawnPetal(fromBloom){
-    if(petals.length >= MAX_PETALS || skipPetals) return;
-    var x, y;
-    if(fromBloom && blooms.length){
-      var bl = blooms[(Math.random() * blooms.length) | 0];
-      var nd = bl.node;
-      x = nd.x + (nd.x2 - nd.x) * bl.along + bl.ox;
-      y = nd.y + (nd.y2 - nd.y) * bl.along + bl.oy;
-    } else {
-      x = baseX + (Math.random() - 0.5) * W * 0.45;
-      y = H * (0.1 + Math.random() * 0.28);
-    }
+  function spawnPetal(){
+    if(petals.length >= MAX_PETALS || !blooms.length) return;
+    var bl = blooms[(Math.random() * blooms.length) | 0];
+    var nd = bl.node, par = nd.parent;
+    var x = par ? par.x + (nd.x - par.x) * bl.along : nd.x;
+    var y = par ? par.y + (nd.y - par.y) * bl.along : nd.y;
     petals.push({
-      x: x, y: y,
+      x: x + bl.ox, y: y + bl.oy,
       size: 3 + Math.random() * 5,
       rot: Math.random() * Math.PI * 2,
-      vrot: (Math.random() - 0.5) * 0.07,
-      vy: 0.3 + Math.random() * 0.85,
-      vx: wind.v * 0.5 + (Math.random() - 0.35) * 0.5,
-      amp: 12 + Math.random() * 28,
+      vrot: (Math.random() - 0.5) * 0.06,
+      vy: 0.28 + Math.random() * 0.8,
+      vx: wind.v * 0.4 + (Math.random() - 0.35) * 0.45,
+      amp: 10 + Math.random() * 24,
       ph: Math.random() * Math.PI * 2,
-      phs: 0.01 + Math.random() * 0.02,
+      phs: 0.01 + Math.random() * 0.018,
       a: 0
     });
   }
 
   function drawPetals(dt){
-    if(skipPetals){ petals.length = 0; return; }
-    if(!reduce.matches){
-      var rate = 0.35 + Math.abs(wind.v) * 0.8;
-      if(Math.random() < rate * dt * 0.05) spawnPetal(true);
-    }
+    if(!reduce.matches && Math.random() < (0.3 + Math.abs(wind.v)) * dt * 0.05) spawnPetal();
     if(!petalSprite) return;
     for(var i = petals.length - 1; i >= 0; i--){
       var p = petals[i];
-      p.vy += 0.0035 * dt;
-      p.vx += wind.v * 0.012 * dt;
+      p.vy += 0.003 * dt;
+      p.vx += wind.v * 0.01 * dt;
       p.vx *= 0.995;
-      p.x += (p.vx + Math.sin(p.ph) * 0.18) * dt;
+      p.x += (p.vx + Math.sin(p.ph) * 0.15) * dt;
       p.y += p.vy * dt;
       p.ph += p.phs * dt;
       p.rot += p.vrot * dt;
       if(p.a < 0.9) p.a += 0.04 * dt;
       if(p.y > H * 0.9) p.a -= 0.04 * dt;
-      if(p.y > H + 24 || p.a <= 0 || p.x < -40 || p.x > W + 40){ petals.splice(i, 1); continue; }
+      if(p.y > H + 20 || p.a <= 0 || p.x < -40 || p.x > W + 40){ petals.splice(i, 1); continue; }
       var xx = p.x + Math.sin(p.ph) * p.amp;
-      var s = p.size * 2.2;
+      var s = p.size * 2.1;
       ctx.globalAlpha = p.a;
       ctx.save();
       ctx.translate(xx, p.y);
@@ -736,67 +757,50 @@ html[data-theme="light"] .toggle .ti-moon{display:none}
   function updateOrnaments(time, dt){
     for(var i = 0; i < ornaments.length; i++){
       var o = ornaments[i];
-      var nd = o.slot.node;
-      var along = o.slot.along;
-      var px = nd.x + (nd.x2 - nd.x) * along;
-      var py = nd.y + (nd.y2 - nd.y) * along;
-      // soft pendulum only — mouse barely affects badges
-      var target = wind.v * 0.06 + Math.sin(time * 1.1 + i * 0.9) * 0.04;
+      var n = o.node;
+      var target = wind.v * 0.05 + Math.sin(time * 1.05 + i) * 0.035;
       o.swingV += (target - o.swing) * 0.06 * dt;
       o.swingV *= Math.pow(0.92, dt);
       o.swing += o.swingV * dt;
       var ang = o.swing;
-      var tx = px + Math.sin(ang) * o.drop;
-      var ty = py + Math.cos(ang) * o.drop;
+      var tx = n.x + Math.sin(ang) * o.drop;
+      var ty = n.y + Math.cos(ang) * o.drop;
       o.el.style.transform =
-        "translate(" + (tx|0) + "px," + (ty|0) + "px) rotate(" + (ang * 16).toFixed(2) + "deg) translate(-50%,0)";
+        "translate(" + (tx|0) + "px," + (ty|0) + "px) rotate(" + (ang * 14).toFixed(2) + "deg) translate(-50%,0)";
     }
   }
 
   function updateWind(time, dt){
-    wind.gustT -= dt;
-    if(wind.gustT <= 0){
-      wind.target = (Math.random() - 0.35) * 0.7; // gentler gusts
-      wind.gustT = (3 + Math.random() * 6) * 60;
+    wind.t -= dt;
+    if(wind.t <= 0){
+      wind.target = (Math.random() - 0.4) * 0.55;
+      wind.t = (3 + Math.random() * 5) * 60;
     }
     wind.v += (wind.target - wind.v) * 0.012 * dt;
-    wind.v += Math.sin(time * 0.3) * 0.002 * dt;
   }
 
   var last = performance.now();
-  var avgFrame = 16;
-  var themeWatch = root.getAttribute("data-theme");
   function frame(now){
     if(!running) return;
-    var frameMs = now - last;
-    var dt = Math.min(2.5, frameMs / 16.666);
+    var dt = Math.min(2.5, (now - last) / 16.666);
     last = now;
     var time = (now - t0) / 1000;
 
-    avgFrame = avgFrame * 0.9 + frameMs * 0.1;
-    // thrifty mode only drops falling petals / fine twigs — never blooms
-    if(avgFrame > 32){ quality = 0.5; skipPetals = avgFrame > 42; }
-    else if(avgFrame < 20){ quality = 1; skipPetals = false; }
-
-    var th = root.getAttribute("data-theme");
-    if(th !== themeWatch){
-      themeWatch = th;
-      buildSprites(th === "light");
-    }
-
-    // slow cursor follow — no snappy tree lurch
     mouse.x += (mouse.tx - mouse.x) * 0.03;
     mouse.y += (mouse.ty - mouse.y) * 0.03;
 
     if(!reduce.matches){
       updateWind(time, dt);
-      animateStructure(time);
-      drawTree(time);
-      if(quality >= 1 || ((now / 33) | 0) % 2 === 0) drawPetals(dt);
+      animate(time);
+      draw(time);
+      drawPetals(dt);
       updateOrnaments(time, dt);
     } else {
-      poseRest();
-      drawTree(0);
+      for(var i = 0; i < nodes.length; i++){
+        nodes[i].x = nodes[i].rx;
+        nodes[i].y = nodes[i].ry;
+      }
+      draw(0);
       updateOrnaments(0, 1);
     }
     raf = requestAnimationFrame(frame);
@@ -815,7 +819,6 @@ html[data-theme="light"] .toggle .ti-moon{display:none}
   }
 
   function resize(){
-    // Cap DPR — 2× retina fillrate is the main lag source on big screens
     DPR = Math.min(window.devicePixelRatio || 1, 1.5);
     W = window.innerWidth;
     H = window.innerHeight;
@@ -824,17 +827,15 @@ html[data-theme="light"] .toggle .ti-moon{display:none}
     canvas.style.width = W + "px";
     canvas.style.height = H + "px";
     ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
-    // imageSmoothing for soft sprites at non-integer sizes
     ctx.imageSmoothingEnabled = true;
     ctx.imageSmoothingQuality = "low";
     petals = [];
     buildSprites(isLight());
     buildTree();
-    poseRest();
   }
 
   window.addEventListener("resize", (function(){
-    var z; return function(){ clearTimeout(z); z = setTimeout(resize, 120); };
+    var z; return function(){ clearTimeout(z); z = setTimeout(resize, 140); };
   })(), { passive: true });
   window.addEventListener("pointermove", function(e){
     mouse.tx = e.clientX / window.innerWidth;
@@ -842,9 +843,9 @@ html[data-theme="light"] .toggle .ti-moon{display:none}
   }, { passive: true });
   window.addEventListener("pointerdown", function(e){
     if(e.target.closest && e.target.closest("a,button")) return;
-    wind.target = (e.clientX / W - 0.5) * 2.8;
-    wind.gustT = 2.5 * 60;
-    for(var i = 0; i < 6; i++) spawnPetal(true);
+    wind.target = (e.clientX / W - 0.5) * 1.1;
+    wind.t = 2.2 * 60;
+    for(var i = 0; i < 5; i++) spawnPetal();
   }, { passive: true });
   document.addEventListener("visibilitychange", function(){
     if(document.hidden) stop(); else start();
