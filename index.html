@@ -1,0 +1,1130 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark light">
+<meta name="theme-color" content="#07080f">
+<meta name="description" content="kidandcat — Jairo. Builder of apps, games and strange little systems. Current stack, tools and living projects.">
+<title>kidandcat</title>
+<style>
+/* ============================================================
+   kidandcat — living sakura
+   A giant cherry tree holds the tools. The person stands under it.
+   ============================================================ */
+
+:root{
+  --font-sans: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", "Cascadia Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+  --step: clamp(0.95rem, 0.88rem + 0.35vw, 1.05rem);
+  --r: 14px;
+}
+
+html[data-theme="dark"]{
+  --bg-0:#05060c;
+  --bg-1:#0a0c17;
+  --sky-top:#070a18;
+  --sky-mid:#161028;
+  --glow-warm:#3a1a24;
+  --ink:#eef1fb;
+  --ink-dim:#9aa2be;
+  --ink-faint:#5a627e;
+  --line:rgba(140,160,220,0.14);
+  --line-strong:rgba(150,175,255,0.30);
+  --accent:#57e6ff;
+  --accent-2:#ffb570;
+  --accent-3:#ff6ea9;
+  --panel:rgba(12,16,32,0.62);
+  --panel-solid:rgba(12,16,32,0.88);
+  --panel-brd:rgba(120,150,230,0.22);
+  --shadow:0 20px 60px -20px rgba(0,0,0,0.75);
+  --tag-bg:rgba(18,14,28,0.78);
+  --tag-brd:rgba(255,170,200,0.28);
+  --tag-ink:#ffe8f0;
+  --tag-sub:#c49ab0;
+  --wood:#6b3f2a;
+  --string:rgba(255,210,230,0.45);
+  --glow-a:rgba(87,230,255,0.45);
+  --blossom-glow:rgba(255,140,190,0.18);
+}
+
+html[data-theme="light"]{
+  --bg-0:#e8ecf6;
+  --bg-1:#f3f5fb;
+  --sky-top:#e6eefb;
+  --sky-mid:#f6e8ef;
+  --glow-warm:#ffe4cc;
+  --ink:#161a26;
+  --ink-dim:#4c5470;
+  --ink-faint:#8b93ac;
+  --line:rgba(40,55,110,0.12);
+  --line-strong:rgba(40,60,130,0.22);
+  --accent:#0a97b8;
+  --accent-2:#d9772a;
+  --accent-3:#d24f86;
+  --panel:rgba(255,255,255,0.68);
+  --panel-solid:rgba(255,255,255,0.92);
+  --panel-brd:rgba(40,60,130,0.14);
+  --shadow:0 24px 60px -28px rgba(30,45,90,0.28);
+  --tag-bg:rgba(255,248,252,0.9);
+  --tag-brd:rgba(180,80,120,0.28);
+  --tag-ink:#4a2038;
+  --tag-sub:#8a5a72;
+  --wood:#8b5340;
+  --string:rgba(120,60,80,0.4);
+  --glow-a:rgba(10,151,184,0.3);
+  --blossom-glow:rgba(255,140,180,0.22);
+}
+
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{
+  min-height:100svh;
+  min-height:100dvh;
+  font-family:var(--font-sans);
+  color:var(--ink);
+  background:var(--bg-1);
+  overflow:hidden;
+  line-height:1.55;
+  -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
+  transition:background-color .6s ease, color .6s ease;
+}
+
+/* Atmosphere under the tree canvas */
+.bg{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+.bg .sky{
+  position:absolute;inset:-8%;
+  background:
+    radial-gradient(100% 70% at 72% 18%, var(--sky-mid) 0%, transparent 58%),
+    radial-gradient(80% 55% at 18% 100%, var(--glow-warm) 0%, transparent 55%),
+    linear-gradient(180deg, var(--sky-top) 0%, var(--bg-1) 55%, var(--bg-0) 100%);
+  transition:background .6s ease;
+}
+.bg .aura{position:absolute;inset:0;mix-blend-mode:screen;opacity:.85}
+html[data-theme="light"] .bg .aura{mix-blend-mode:multiply;opacity:.45}
+.bg .aura b{
+  position:absolute;border-radius:50%;filter:blur(70px);
+  animation:drift 28s ease-in-out infinite alternate;
+}
+.bg .aura .a1{width:48vmax;height:48vmax;left:48%;top:-20%;background:radial-gradient(circle,var(--accent) 0%,transparent 62%);opacity:.12}
+.bg .aura .a2{width:40vmax;height:40vmax;left:-14%;top:50%;background:radial-gradient(circle,var(--accent-2) 0%,transparent 62%);opacity:.12;animation-delay:-10s}
+.bg .aura .a3{width:36vmax;height:36vmax;left:62%;top:52%;background:radial-gradient(circle,var(--accent-3) 0%,transparent 62%);opacity:.14;animation-delay:-16s}
+@keyframes drift{from{transform:translate3d(0,0,0) scale(1)}to{transform:translate3d(3%,-2.5%,0) scale(1.1)}}
+
+#tree{
+  position:fixed;inset:0;z-index:1;
+  width:100%;height:100%;
+  display:block;
+  pointer-events:none;
+}
+
+/* Soft ground mist so the trunk feels rooted */
+.ground{
+  position:fixed;left:0;right:0;bottom:0;height:28vh;z-index:2;pointer-events:none;
+  background:linear-gradient(180deg, transparent 0%, color-mix(in oklab, var(--bg-0) 55%, transparent) 70%, var(--bg-0) 100%);
+  opacity:.85;
+}
+
+/* HUD corners */
+.hud{position:fixed;inset:0;z-index:6;pointer-events:none}
+.hud .corner{position:absolute;width:22px;height:22px;border:1.5px solid var(--line-strong)}
+.hud .tl{top:14px;left:14px;border-right:0;border-bottom:0}
+.hud .tr{top:14px;right:14px;border-left:0;border-bottom:0}
+.hud .bl{bottom:14px;left:14px;border-right:0;border-top:0}
+.hud .br{bottom:14px;right:14px;border-left:0;border-top:0}
+
+/* Layout shell */
+.shell{
+  position:relative;z-index:4;
+  height:100svh;height:100dvh;
+  display:grid;
+  grid-template-rows:auto 1fr auto;
+  padding:clamp(12px,2vw,22px);
+  max-width:1400px;margin:0 auto;
+  pointer-events:none;
+}
+.shell a,.shell button{pointer-events:auto}
+
+.top{
+  display:flex;align-items:center;justify-content:space-between;gap:14px;
+  font-family:var(--font-mono);font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-faint);
+}
+.top .status{display:flex;align-items:center;gap:9px}
+.dot{
+  width:7px;height:7px;border-radius:50%;background:var(--accent);
+  box-shadow:0 0 0 0 var(--glow-a);animation:pulse 2.6s ease-out infinite;
+}
+@keyframes pulse{0%{box-shadow:0 0 0 0 var(--glow-a)}70%{box-shadow:0 0 0 10px transparent}100%{box-shadow:0 0 0 0 transparent}}
+
+.toggle{
+  display:inline-flex;align-items:center;gap:8px;
+  font-family:var(--font-mono);font-size:.68rem;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--ink-dim);background:var(--panel);border:1px solid var(--panel-brd);
+  padding:7px 12px;border-radius:999px;cursor:pointer;backdrop-filter:blur(10px);
+  transition:color .2s,border-color .2s,transform .15s;
+}
+.toggle:hover{color:var(--ink);border-color:var(--line-strong);transform:translateY(-1px)}
+.toggle:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+.toggle svg{width:14px;height:14px;display:block}
+.toggle .ti-sun{display:none}
+html[data-theme="light"] .toggle .ti-sun{display:block}
+html[data-theme="light"] .toggle .ti-moon{display:none}
+
+/* Identity panel — left under the canopy */
+.stage{
+  display:grid;
+  grid-template-columns:minmax(0, min(420px, 42vw)) 1fr;
+  align-items:end;
+  gap:clamp(12px,2vw,28px);
+  min-height:0;
+  padding:clamp(6px,1.5vh,18px) 0;
+}
+@media (max-width:820px){
+  .stage{
+    grid-template-columns:1fr;
+    align-items:end;
+    /* leave upper half for the living tree */
+    padding-top:min(38vh, 320px);
+  }
+  .card{
+    max-height:min(52vh, 480px);
+    width:100%;
+  }
+  .tree-hint{display:none}
+  .intro{display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}
+}
+
+.card{
+  background:var(--panel);
+  border:1px solid var(--panel-brd);
+  border-radius:calc(var(--r) + 4px);
+  backdrop-filter:blur(16px) saturate(1.1);
+  box-shadow:var(--shadow);
+  padding:clamp(14px,1.8vw,22px);
+  max-height:min(82vh, 760px);
+  overflow:auto;
+  overscroll-behavior:contain;
+  scrollbar-width:thin;
+  scrollbar-color:var(--ink-faint) transparent;
+}
+.card::-webkit-scrollbar{width:6px}
+.card::-webkit-scrollbar-thumb{background:var(--ink-faint);border-radius:99px}
+
+.eyebrow{
+  font-family:var(--font-mono);font-size:.68rem;letter-spacing:.28em;text-transform:uppercase;
+  color:var(--ink-faint);margin:0 0 10px;
+}
+.mark{
+  margin:0 0 10px;
+  font-weight:800;line-height:.95;letter-spacing:-0.025em;
+  font-size:clamp(2.1rem, 5.5vw, 3.2rem);
+  color:var(--ink);
+}
+.mark .cat{
+  background:linear-gradient(180deg, var(--accent-3) 0%, color-mix(in oklab, var(--accent) 50%, var(--accent-3)) 100%);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+}
+.tagline{
+  margin:0 0 14px;
+  font-family:var(--font-mono);font-size:.86rem;color:var(--ink-dim);letter-spacing:.01em;
+}
+.tagline .hl{color:var(--ink)}
+.intro{
+  margin:0 0 12px;
+  color:var(--ink-dim);font-size:var(--step);line-height:1.6;
+}
+.intro strong{color:var(--ink);font-weight:600}
+
+.section{margin:0 0 12px}
+.section:last-child{margin-bottom:0}
+.section h2{
+  margin:0 0 6px;
+  font-family:var(--font-mono);font-size:.66rem;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--ink-faint);font-weight:500;
+}
+.chips{display:flex;flex-wrap:wrap;gap:7px}
+.chip-s{
+  font-family:var(--font-mono);font-size:.72rem;letter-spacing:.04em;
+  color:var(--ink-dim);
+  background:color-mix(in oklab, var(--panel-solid) 70%, transparent);
+  border:1px solid var(--panel-brd);
+  padding:5px 10px;border-radius:999px;
+}
+.chip-s strong{color:var(--ink);font-weight:600}
+.now-list{margin:0;padding:0;list-style:none;display:grid;gap:6px}
+.now-list li{
+  display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:baseline;
+  font-size:.9rem;color:var(--ink-dim);
+}
+.now-list .k{
+  font-family:var(--font-mono);font-size:.68rem;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--accent);white-space:nowrap;
+}
+.links{display:flex;flex-wrap:wrap;gap:10px;margin-top:4px}
+.chip{
+  position:relative;display:inline-flex;align-items:center;gap:9px;
+  font-family:var(--font-mono);font-size:.78rem;letter-spacing:.04em;
+  color:var(--ink);text-decoration:none;
+  padding:10px 14px 10px 12px;border-radius:12px;
+  background:var(--panel-solid);border:1px solid var(--panel-brd);
+  transition:transform .18s cubic-bezier(.2,.7,.3,1),border-color .2s,box-shadow .25s;
+}
+.chip svg{width:16px;height:16px;flex:none}
+.chip .arw{opacity:.45;transition:transform .2s,opacity .2s}
+.chip:hover{transform:translateY(-2px);border-color:var(--line-strong);box-shadow:0 12px 28px -16px var(--glow-a)}
+.chip:hover .arw{transform:translate(2px,-2px);opacity:1;color:var(--accent)}
+.chip:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+.chip .sub{color:var(--ink-faint);font-size:.68rem}
+
+.tree-hint{
+  align-self:end;justify-self:end;
+  max-width:220px;
+  text-align:right;
+  font-family:var(--font-mono);font-size:.68rem;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--ink-faint);line-height:1.5;
+  padding:10px 12px;
+  background:var(--panel);border:1px solid var(--panel-brd);border-radius:12px;
+  backdrop-filter:blur(10px);
+  margin-bottom:8vh;
+}
+.tree-hint b{display:block;color:var(--ink-dim);font-weight:500;margin-bottom:4px;letter-spacing:.14em}
+
+.foot{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+  font-family:var(--font-mono);font-size:.65rem;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-faint);
+}
+.foot .seq{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* Ornaments hanging from branches */
+#ornaments{
+  position:fixed;inset:0;z-index:3;
+  pointer-events:none;
+}
+.orn{
+  position:absolute;
+  left:0;top:0;
+  transform:translate(-50%, 0);
+  pointer-events:auto;
+  will-change:transform;
+  text-decoration:none;
+  color:inherit;
+  /* string */
+}
+.orn::before{
+  content:"";
+  position:absolute;left:50%;top:-28px;
+  width:1px;height:28px;
+  background:linear-gradient(180deg, transparent, var(--string));
+  transform:translateX(-50%);
+}
+.orn .tag{
+  display:flex;flex-direction:column;align-items:flex-start;gap:1px;
+  min-width:0;
+  max-width:148px;
+  padding:8px 11px 9px;
+  border-radius:10px 10px 12px 12px;
+  background:var(--tag-bg);
+  border:1px solid var(--tag-brd);
+  box-shadow:
+    0 10px 28px -12px rgba(0,0,0,.55),
+    inset 0 1px 0 rgba(255,255,255,.06);
+  backdrop-filter:blur(8px);
+  transition:border-color .2s, box-shadow .25s, background .2s;
+}
+.orn:hover .tag{
+  border-color:color-mix(in oklab, var(--accent-3) 55%, var(--tag-brd));
+  box-shadow:
+    0 14px 32px -12px rgba(255,120,170,.35),
+    0 0 0 1px color-mix(in oklab, var(--accent-3) 30%, transparent);
+}
+.orn:focus-visible{outline:none}
+.orn:focus-visible .tag{outline:2px solid var(--accent);outline-offset:3px}
+.orn .name{
+  font-family:var(--font-mono);
+  font-size:.72rem;font-weight:600;letter-spacing:.04em;
+  color:var(--tag-ink);line-height:1.2;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;
+}
+.orn .role{
+  font-family:var(--font-mono);
+  font-size:.58rem;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--tag-sub);line-height:1.2;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;
+}
+.orn .knot{
+  position:absolute;left:50%;top:-4px;
+  width:6px;height:6px;border-radius:50%;
+  background:color-mix(in oklab, var(--wood) 70%, var(--accent-3));
+  transform:translateX(-50%);
+  box-shadow:0 0 0 2px color-mix(in oklab, var(--tag-bg) 80%, transparent);
+}
+
+/* Entrance */
+.rise{opacity:0;transform:translateY(14px);animation:rise .85s cubic-bezier(.2,.7,.2,1) forwards}
+.rise.d1{animation-delay:.05s}.rise.d2{animation-delay:.16s}.rise.d3{animation-delay:.28s}
+.rise.d4{animation-delay:.4s}.rise.d5{animation-delay:.52s}
+@keyframes rise{to{opacity:1;transform:none}}
+
+@media (max-width:560px){
+  .top .seqtop{display:none}
+  .foot .built{display:none}
+  .mark{font-size:clamp(1.8rem, 9vw, 2.4rem)}
+  .tagline{font-size:.8rem}
+  .orn .tag{padding:6px 8px 7px;max-width:112px}
+  .orn .name{font-size:.64rem}
+  .orn .role{font-size:.52rem}
+  /* fewer ornaments clutter on narrow screens via CSS hide of overflow is fine;
+     JS still places them — keep tags smaller */
+}
+
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important}
+  .rise{opacity:1;transform:none}
+  .dot{box-shadow:none}
+}
+</style>
+</head>
+<body>
+
+<div class="bg" aria-hidden="true">
+  <div class="sky"></div>
+  <div class="aura"><b class="a1"></b><b class="a2"></b><b class="a3"></b></div>
+</div>
+
+<canvas id="tree" aria-hidden="true"></canvas>
+<div class="ground" aria-hidden="true"></div>
+
+<div id="ornaments" aria-label="Tools hanging from the tree"></div>
+
+<div class="hud" aria-hidden="true">
+  <span class="corner tl"></span><span class="corner tr"></span>
+  <span class="corner bl"></span><span class="corner br"></span>
+</div>
+
+<div class="shell">
+  <header class="top">
+    <div class="status rise d1"><span class="dot"></span><span>under the sakura</span></div>
+    <span class="seqtop rise d1">current state · 2026</span>
+    <button class="toggle rise d1" id="themeBtn" type="button" aria-label="Toggle color theme" aria-pressed="false">
+      <svg class="ti-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+      <svg class="ti-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2v2.4M12 19.6V22M4.2 4.2l1.7 1.7M18.1 18.1l1.7 1.7M2 12h2.4M19.6 12H22M4.2 19.8l1.7-1.7M18.1 5.9l1.7-1.7"/></svg>
+      <span class="tlabel">theme</span>
+    </button>
+  </header>
+
+  <main class="stage">
+    <article class="card rise d2">
+      <p class="eyebrow">personal frequency</p>
+      <h1 class="mark">kidand<span class="cat">cat</span></h1>
+      <p class="tagline">
+        Developer, designer &amp; architect — I make <span class="hl">games</span>,
+        <span class="hl">apps</span> and living systems, mostly for the joy of building them.
+      </p>
+      <p class="intro">
+        Hey — I'm <strong>Jairo</strong>. 10+ years shipping software across every layer:
+        pixel → firmware → server → product. Right now I run an agent-native workshop:
+        design with Impeccable, ship motion with Hyperframes, build with Go / Flutter / Rust,
+        and keep my day digitized through my own tools.
+      </p>
+
+      <section class="section" aria-labelledby="now-h">
+        <h2 id="now-h">Now</h2>
+        <ul class="now-list">
+          <li><span class="k">fecha</span><span>community access, reservations &amp; IoT gates</span></li>
+          <li><span class="k">funquila</span><span>games &amp; playful mobile surfaces</span></li>
+          <li><span class="k">konecta</span><span>academy + centro for Japan ops</span></li>
+          <li><span class="k">takan</span><span>personal MCP hub — people, health, day-to-day</span></li>
+          <li><span class="k">agents</span><span>Claude · Grok · fleet across Mac + VPS</span></li>
+        </ul>
+      </section>
+
+      <section class="section" aria-labelledby="stack-h">
+        <h2 id="stack-h">Stack</h2>
+        <div class="chips">
+          <span class="chip-s"><strong>Go</strong></span>
+          <span class="chip-s"><strong>Flutter</strong></span>
+          <span class="chip-s"><strong>Rust</strong></span>
+          <span class="chip-s">TypeScript</span>
+          <span class="chip-s">SQLite</span>
+          <span class="chip-s">MQTT</span>
+          <span class="chip-s">ESP32</span>
+          <span class="chip-s">Caddy</span>
+          <span class="chip-s">Tailscale</span>
+          <span class="chip-s">Colima</span>
+          <span class="chip-s">Fly.io</span>
+          <span class="chip-s">Codemagic</span>
+        </div>
+      </section>
+
+      <section class="section" aria-labelledby="tools-h">
+        <h2 id="tools-h">Toolset <span style="opacity:.6;letter-spacing:.06em">(also on the tree →)</span></h2>
+        <div class="chips">
+          <span class="chip-s"><strong>Hyperframes</strong></span>
+          <span class="chip-s"><strong>Impeccable</strong></span>
+          <span class="chip-s">Claude Code</span>
+          <span class="chip-s">Grok Build</span>
+          <span class="chip-s">Takan</span>
+          <span class="chip-s">shot</span>
+          <span class="chip-s">Playwright</span>
+          <span class="chip-s">Linear</span>
+        </div>
+      </section>
+
+      <nav class="links" aria-label="Find me elsewhere">
+        <a class="chip" href="https://github.com/kidandcat" target="_blank" rel="me noopener noreferrer">
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .5A11.5 11.5 0 0 0 .5 12a11.5 11.5 0 0 0 7.86 10.92c.58.1.79-.25.79-.56v-2c-3.2.7-3.88-1.36-3.88-1.36-.53-1.34-1.29-1.7-1.29-1.7-1.05-.72.08-.71.08-.71 1.16.08 1.77 1.2 1.77 1.2 1.03 1.77 2.7 1.26 3.36.96.1-.75.4-1.26.73-1.55-2.56-.29-5.26-1.28-5.26-5.7 0-1.26.45-2.29 1.19-3.1-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.18 1.18a11 11 0 0 1 5.8 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.24 2.76.12 3.05.74.81 1.18 1.84 1.18 3.1 0 4.43-2.7 5.4-5.28 5.69.41.36.78 1.06.78 2.14v3.17c0 .31.21.67.8.56A11.5 11.5 0 0 0 23.5 12 11.5 11.5 0 0 0 12 .5z"/></svg>
+          <span>github<span class="sub"> /kidandcat</span></span>
+          <svg class="arw" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M8 7h9v9"/></svg>
+        </a>
+        <a class="chip" href="https://x.com/kidandcat" target="_blank" rel="me noopener noreferrer">
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M18.24 2.25h3.31l-7.23 8.26 8.5 11.24h-6.66l-5.22-6.82-5.97 6.82H1.65l7.73-8.84L1.23 2.25H8.06l4.71 6.23 5.47-6.23zm-1.16 17.52h1.83L7.01 4.13H5.05l12.03 15.64z"/></svg>
+          <span>x<span class="sub"> /kidandcat</span></span>
+          <svg class="arw" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M8 7h9v9"/></svg>
+        </a>
+      </nav>
+    </article>
+
+    <p class="tree-hint rise d3" aria-hidden="true">
+      <b>the living tree</b>
+      tools hang from the branches — pull one
+    </p>
+  </main>
+
+  <footer class="foot rise d5">
+    <span class="seq">/// the tree keeps growing</span>
+    <span class="built">© <span id="yr"></span> kidandcat</span>
+  </footer>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  /* =========================================================
+     Theme
+     ========================================================= */
+  var root = document.documentElement;
+  var reduce = window.matchMedia("(prefers-reduced-motion: reduce)");
+  var KEY = "kac-theme";
+
+  function applyTheme(t){
+    root.setAttribute("data-theme", t);
+    var m = document.querySelector('meta[name="theme-color"]');
+    if(m) m.setAttribute("content", t === "dark" ? "#05060c" : "#eef1f7");
+    var btn = document.getElementById("themeBtn");
+    if(btn) btn.setAttribute("aria-pressed", String(t === "light"));
+  }
+  var saved; try{ saved = localStorage.getItem(KEY); }catch(e){}
+  var prefLight = window.matchMedia("(prefers-color-scheme: light)").matches;
+  applyTheme(saved || (prefLight ? "light" : "dark"));
+  document.getElementById("themeBtn").addEventListener("click", function(){
+    var next = root.getAttribute("data-theme") === "dark" ? "light" : "dark";
+    applyTheme(next);
+    try{ localStorage.setItem(KEY, next); }catch(e){}
+  });
+  document.getElementById("yr").textContent = new Date().getFullYear();
+
+  /* =========================================================
+     Tools that hang from the tree
+     ========================================================= */
+  var TOOLS = [
+    { name: "Hyperframes", role: "product video",  href: "https://hyperframes.heygen.com/" },
+    { name: "Impeccable",  role: "design craft",   href: "https://impeccable.style/" },
+    { name: "Claude Code", role: "agent harness",  href: "https://claude.ai/code" },
+    { name: "Grok Build",  role: "agent harness",  href: "https://grok.x.ai/" },
+    { name: "Takan",       role: "personal hub",   href: "https://takan.es" },
+    { name: "shot",        role: "screenshot craft", href: "https://github.com/kidandcat/shot" },
+    { name: "Flutter",     role: "mobile stack",   href: "https://flutter.dev" },
+    { name: "Go",          role: "backend stack",  href: "https://go.dev" },
+    { name: "Rust",        role: "firmware · games", href: "https://www.rust-lang.org" },
+    { name: "Tailscale",   role: "fleet mesh",     href: "https://tailscale.com" }
+  ];
+
+  /* =========================================================
+     Living sakura tree
+     Hierarchical bones + open canopy + hanging tools
+     ========================================================= */
+  var canvas = document.getElementById("tree");
+  var ctx = canvas.getContext("2d", { alpha: true });
+  var W = 0, H = 0, DPR = 1;
+  var t0 = performance.now();
+  var mouse = { x: 0.5, y: 0.4, tx: 0.5, ty: 0.4 };
+  var wind = { v: 0.15, target: 0.15, gustT: 120 };
+  var petals = [];
+  var nodes = [];       // hierarchical bone tree
+  var flat = [];        // depth-first list for draw
+  var hangSlots = [];
+  var ornaments = [];
+  var blooms = [];
+  var running = false;
+  var raf = null;
+  var seed = 20260730;
+  var baseX = 0, baseY = 0;
+
+  function rand(){
+    seed |= 0; seed = seed + 0x6D2B79F5 | 0;
+    var n = Math.imul(seed ^ seed >>> 15, 1 | seed);
+    n = n + Math.imul(n ^ n >>> 7, 61 | n) ^ n;
+    return ((n ^ n >>> 14) >>> 0) / 4294967296;
+  }
+  function rrange(a, b){ return a + rand() * (b - a); }
+  function isLight(){ return root.getAttribute("data-theme") === "light"; }
+
+  /* ---- hierarchical build ---- */
+  function makeNode(parent, len, angle, depth, thick){
+    var n = {
+      parent: parent,
+      children: [],
+      len: len,
+      angle0: angle,     // relative to parent (absolute if root)
+      thick: thick,
+      depth: depth,
+      phase: rrange(0, Math.PI * 2),
+      flex: 0.018 + depth * 0.014,
+      // world (filled each frame)
+      x: 0, y: 0,        // start
+      x2: 0, y2: 0,      // end
+      absAng: 0
+    };
+    nodes.push(n);
+    flat.push(n);
+    if(parent) parent.children.push(n);
+    return n;
+  }
+
+  function buildTree(){
+    nodes = [];
+    flat = [];
+    hangSlots = [];
+    blooms = [];
+    seed = 20260730;
+
+    var mobile = W < 820;
+    // On mobile the card sits in the lower half — grow the tree in the upper sky
+    baseX = mobile ? W * 0.55 : W * 0.70;
+    baseY = mobile ? H * 0.58 : H * 0.94;
+    var scale = Math.min(W, H) / (mobile ? 480 : 820);
+    var maxDepth = mobile ? 6 : 8;
+
+    // Root trunk (absolute angle, up)
+    var trunkLen = mobile
+      ? Math.min(H * 0.18, 140)
+      : Math.min(H * 0.26, 240);
+    var trunk = makeNode(null, trunkLen, -Math.PI / 2, 0, (mobile ? 14 : 22) * scale);
+
+    function grow(node, depth){
+      if(depth >= maxDepth || node.len < 14 * scale){
+        // tip cluster — sparse, open sakura
+        addCluster(node, scale, true);
+        // hang from lower tips
+        if(depth >= 3){
+          hangSlots.push({ node: node, along: 0.92, prefer: depth <= 5 ? 1 : 0.4 });
+        }
+        return;
+      }
+
+      var isTrunk = depth <= 1;
+      var childCount;
+      if(depth === 0) childCount = 1;            // trunk continues
+      else if(depth === 1) childCount = 4;      // primary crown split
+      else if(depth === 2) childCount = 3;
+      else if(depth < 5) childCount = rand() < 0.55 ? 2 : 1;
+      else childCount = rand() < 0.4 ? 2 : 1;
+
+      // Main continuation of trunk
+      if(depth === 0){
+        var cont = makeNode(node, node.len * 0.72, rrange(-0.06, 0.06), 1, node.thick * 0.78);
+        // mid-trunk hang candidates (tools dangle in open air)
+        hangSlots.push({ node: cont, along: 0.55, prefer: 1.2 });
+        grow(cont, 1);
+        // low side limbs — classic sakura silhouette
+        var leftLow = makeNode(node, node.len * 0.62, -0.85 + rrange(-0.08, 0.08), 1, node.thick * 0.48);
+        var rightLow = makeNode(node, node.len * 0.58, 0.9 + rrange(-0.08, 0.08), 1, node.thick * 0.45);
+        hangSlots.push({ node: leftLow, along: 0.88, prefer: 1.4 });
+        hangSlots.push({ node: rightLow, along: 0.88, prefer: 1.4 });
+        grow(leftLow, 2);
+        grow(rightLow, 2);
+        // a few blossoms mid-limb, not a solid mass
+        addCluster(leftLow, scale, false);
+        addCluster(rightLow, scale, false);
+        return;
+      }
+
+      for(var i = 0; i < childCount; i++){
+        var spread;
+        if(depth === 1){
+          // fan the crown: -1.1 .. +1.1
+          spread = -1.05 + (i / Math.max(1, childCount - 1)) * 2.1 + rrange(-0.08, 0.08);
+        } else {
+          var fan = 0.55 + rand() * 0.45;
+          spread = (i - (childCount - 1) / 2) * fan + rrange(-0.12, 0.12);
+          // lift tips upward a bit so canopy arcs
+          spread *= 0.9;
+        }
+        var shrink = depth === 1 ? 0.72 : (0.70 + rand() * 0.12);
+        // longer horizontal reach on outer limbs
+        if(depth === 1 && Math.abs(spread) > 0.6) shrink *= 1.08;
+        var nextLen = node.len * shrink;
+        var nextThick = Math.max(1.1 * scale, node.thick * (depth < 3 ? 0.62 : 0.68));
+        var child = makeNode(node, nextLen, spread, depth + 1, nextThick);
+
+        // hang points on mid branches that sit in open sky (not deep canopy)
+        if(depth >= 1 && depth <= 4 && rand() < 0.45){
+          hangSlots.push({
+            node: child,
+            along: 0.75 + rand() * 0.2,
+            prefer: (depth <= 3 ? 1.1 : 0.5) + (Math.abs(spread) > 0.5 ? 0.4 : 0)
+          });
+        }
+
+        // sparse mid-branch blooms (not every branch)
+        if(depth >= 2 && rand() < 0.28) addCluster(child, scale, false);
+
+        grow(child, depth + 1);
+      }
+    }
+
+    grow(trunk, 0);
+
+    // Score hang slots: prefer lower Y (more open), outer X, spread out
+    // World rest pose for scoring
+    poseRest();
+    hangSlots.forEach(function(s){
+      var p = pointOn(s.node, s.along, true);
+      s.score = (s.prefer || 0.5)
+        + (p.y / H) * 0.8                // lower = better (hangs in air)
+        + Math.abs(p.x - baseX) / W * 0.5
+        - (p.y < H * 0.25 ? 1.5 : 0);    // avoid very top
+    });
+    hangSlots.sort(function(a, b){ return b.score - a.score; });
+    assignOrnaments();
+  }
+
+  function addCluster(node, scale, isTip){
+    var n = isTip ? (5 + (rand() * 5 | 0)) : (2 + (rand() * 3 | 0));
+    for(var i = 0; i < n; i++){
+      blooms.push({
+        node: node,
+        along: isTip ? (0.5 + rand() * 0.48) : (0.25 + rand() * 0.65),
+        ox: rrange(-14, 14) * scale,
+        oy: rrange(-12, 8) * scale,
+        r: rrange(3.4, 8.2) * scale * (isTip ? 1 : 0.88),
+        shade: rand(),
+        tw: rrange(0, Math.PI * 2),
+        tws: rrange(0.5, 1.3)
+      });
+    }
+  }
+
+  function poseRest(){
+    // rest pose for scoring (no wind)
+    for(var i = 0; i < flat.length; i++){
+      var n = flat[i];
+      if(!n.parent){
+        n.x = baseX; n.y = baseY;
+        n.absAng = n.angle0;
+      } else {
+        n.x = n.parent.x2; n.y = n.parent.y2;
+        n.absAng = n.parent.absAng + n.angle0;
+      }
+      n.x2 = n.x + Math.cos(n.absAng) * n.len;
+      n.y2 = n.y + Math.sin(n.absAng) * n.len;
+    }
+  }
+
+  function pointOn(node, along, rest){
+    return {
+      x: node.x + (node.x2 - node.x) * along,
+      y: node.y + (node.y2 - node.y) * along
+    };
+  }
+
+  /* ---- ornaments ---- */
+  function assignOrnaments(){
+    var host = document.getElementById("ornaments");
+    host.innerHTML = "";
+    ornaments = [];
+
+    var chosen = [];
+    var minDx = Math.max(78, W * 0.075);
+    var minDy = 36;
+
+    var toolLimit = W < 820 ? Math.min(6, TOOLS.length) : TOOLS.length;
+
+    for(var i = 0; i < hangSlots.length && chosen.length < toolLimit; i++){
+      var s = hangSlots[i];
+      var p = pointOn(s.node, s.along, true);
+      // keep tags on-screen with margin (mobile: stay above the card)
+      var yMax = W < 820 ? H * 0.48 : H * 0.82;
+      if(p.x < 60 || p.x > W - 60 || p.y < 50 || p.y > yMax) continue;
+      var ok = true;
+      for(var j = 0; j < chosen.length; j++){
+        var q = pointOn(chosen[j].node, chosen[j].along, true);
+        if(Math.abs(q.x - p.x) < minDx && Math.abs(q.y - p.y) < minDy * 2.2){ ok = false; break; }
+      }
+      if(ok) chosen.push(s);
+    }
+    // fallback fill
+    for(var k = 0; k < hangSlots.length && chosen.length < toolLimit; k++){
+      if(chosen.indexOf(hangSlots[k]) === -1){
+        var pp = pointOn(hangSlots[k].node, hangSlots[k].along, true);
+        var yMax2 = W < 820 ? H * 0.48 : H * 0.82;
+        if(pp.x > 60 && pp.x < W - 60 && pp.y < yMax2) chosen.push(hangSlots[k]);
+      }
+    }
+
+    for(var t = 0; t < toolLimit && t < chosen.length; t++){
+      var tool = TOOLS[t];
+      var slot = chosen[t];
+      var a = document.createElement("a");
+      a.className = "orn";
+      a.href = tool.href;
+      a.target = "_blank";
+      a.rel = "noopener noreferrer";
+      a.title = tool.name + " — " + tool.role;
+      a.innerHTML =
+        '<span class="knot" aria-hidden="true"></span>' +
+        '<span class="tag"><span class="name"></span><span class="role"></span></span>';
+      a.querySelector(".name").textContent = tool.name;
+      a.querySelector(".role").textContent = tool.role;
+      host.appendChild(a);
+      ornaments.push({
+        el: a,
+        slot: slot,
+        swing: 0,
+        swingV: 0,
+        drop: 22 + (t % 4) * 8
+      });
+    }
+  }
+
+  /* ---- wind: hierarchical FK ---- */
+  function animateStructure(time){
+    var gust = wind.v;
+    var mx = (mouse.x - 0.5);
+    var my = (mouse.y - 0.5);
+
+    for(var i = 0; i < flat.length; i++){
+      var n = flat[i];
+      var localWind =
+          Math.sin(time * 1.05 + n.phase) * n.flex
+        + Math.sin(time * 0.33 + n.phase * 1.9) * n.flex * 0.55
+        + gust * (0.035 + n.depth * 0.012)
+        + mx * (0.04 + n.depth * 0.012)
+        + my * 0.01 * (n.depth > 2 ? 1 : 0);
+
+      if(!n.parent){
+        n.x = baseX;
+        n.y = baseY;
+        n.absAng = n.angle0 + localWind * 0.25;
+      } else {
+        n.x = n.parent.x2;
+        n.y = n.parent.y2;
+        n.absAng = n.parent.absAng + n.angle0 + localWind;
+      }
+      n.x2 = n.x + Math.cos(n.absAng) * n.len;
+      n.y2 = n.y + Math.sin(n.absAng) * n.len;
+    }
+  }
+
+  /* ---- draw ---- */
+  function barkColor(depth){
+    var light = isLight();
+    if(depth < 1) return light ? "#4a2c22" : "#2c1c1a";
+    if(depth < 3) return light ? "#5c382c" : "#3a2624";
+    if(depth < 5) return light ? "#6e4638" : "#4a322e";
+    return light ? "rgba(120,78,62,0.85)" : "rgba(90,62,56,0.88)";
+  }
+
+  function drawTree(time){
+    ctx.clearRect(0, 0, W, H);
+    var light = isLight();
+
+    // soft glow in canopy zone
+    var cx = baseX, cy = H * 0.36;
+    var g = ctx.createRadialGradient(cx, cy, 20, cx, cy, Math.min(W, H) * 0.38);
+    if(light){
+      g.addColorStop(0, "rgba(255,180,205,0.16)");
+      g.addColorStop(0.55, "rgba(255,200,220,0.05)");
+      g.addColorStop(1, "rgba(255,200,220,0)");
+    } else {
+      g.addColorStop(0, "rgba(255,100,160,0.10)");
+      g.addColorStop(0.5, "rgba(140,70,130,0.05)");
+      g.addColorStop(1, "rgba(0,0,0,0)");
+    }
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, W, H);
+
+    // ground shadow
+    ctx.save();
+    ctx.translate(baseX, baseY - 4);
+    ctx.scale(1, 0.18);
+    var sg = ctx.createRadialGradient(0, 0, 2, 0, 0, Math.min(W, H) * 0.16);
+    sg.addColorStop(0, light ? "rgba(40,30,50,0.16)" : "rgba(0,0,0,0.5)");
+    sg.addColorStop(1, "rgba(0,0,0,0)");
+    ctx.fillStyle = sg;
+    ctx.beginPath();
+    ctx.arc(0, 0, Math.min(W, H) * 0.16, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+
+    // draw branches thick→thin
+    var order = flat.slice().sort(function(a, b){ return a.depth - b.depth; });
+    for(var i = 0; i < order.length; i++){
+      var n = order[i];
+      ctx.strokeStyle = barkColor(n.depth);
+      ctx.lineWidth = Math.max(0.8, n.thick * (1 - n.depth * 0.015));
+      ctx.lineCap = "round";
+      ctx.lineJoin = "round";
+
+      // organic curve control point
+      var mid = 0.5;
+      var cang = n.absAng + Math.sin(time * 0.7 + n.phase) * 0.04;
+      var clen = n.len * 0.5;
+      var cpx = n.x + Math.cos(cang + 0.15 * Math.sin(n.phase)) * clen;
+      var cpy = n.y + Math.sin(cang + 0.15 * Math.sin(n.phase)) * clen;
+
+      ctx.beginPath();
+      ctx.moveTo(n.x, n.y);
+      ctx.quadraticCurveTo(cpx, cpy, n.x2, n.y2);
+      ctx.stroke();
+
+      // subtle bark highlight on trunk
+      if(n.depth < 2){
+        ctx.strokeStyle = light ? "rgba(140,90,70,0.25)" : "rgba(110,80,70,0.2)";
+        ctx.lineWidth = Math.max(0.6, n.thick * 0.22);
+        ctx.beginPath();
+        ctx.moveTo(n.x + 2, n.y);
+        ctx.quadraticCurveTo(cpx + 2, cpy, n.x2 + 1.5, n.y2);
+        ctx.stroke();
+      }
+    }
+
+    // blossoms — open clusters, not a solid cloud
+    for(var b = 0; b < blooms.length; b++){
+      var bl = blooms[b];
+      var nd = bl.node;
+      var bx = nd.x + (nd.x2 - nd.x) * bl.along + bl.ox;
+      var by = nd.y + (nd.y2 - nd.y) * bl.along + bl.oy;
+      var pulse = 0.94 + Math.sin(time * bl.tws + bl.tw) * 0.06;
+      drawBlossom(bx, by, bl.r * pulse, bl.shade, light);
+    }
+  }
+
+  function drawBlossom(x, y, r, shade, light){
+    // soft glow
+    ctx.beginPath();
+    ctx.fillStyle = light ? "rgba(255,150,185,0.10)" : "rgba(255,120,170,0.12)";
+    ctx.arc(x, y, r * 1.85, 0, Math.PI * 2);
+    ctx.fill();
+
+    var mid = light
+      ? (shade < 0.5 ? "rgba(255,168,196,0.72)" : "rgba(245,140,175,0.7)")
+      : (shade < 0.5 ? "rgba(255,165,200,0.7)" : "rgba(240,120,170,0.68)");
+
+    for(var i = 0; i < 5; i++){
+      var a = (i / 5) * Math.PI * 2 + shade * Math.PI;
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.rotate(a);
+      ctx.beginPath();
+      ctx.fillStyle = mid;
+      ctx.ellipse(0, -r * 0.48, r * 0.36, r * 0.55, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
+    // center
+    ctx.beginPath();
+    ctx.fillStyle = light ? "rgba(255,236,245,0.9)" : "rgba(255,220,235,0.85)";
+    ctx.arc(x, y, r * 0.22, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.fillStyle = light ? "rgba(255,210,110,0.8)" : "rgba(255,195,100,0.75)";
+    ctx.arc(x, y, r * 0.09, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  /* ---- falling petals ---- */
+  function spawnPetal(fromBloom){
+    if(petals.length > 70) return;
+    var x, y;
+    if(fromBloom && blooms.length){
+      var bl = blooms[(Math.random() * blooms.length) | 0];
+      var nd = bl.node;
+      x = nd.x + (nd.x2 - nd.x) * bl.along + bl.ox;
+      y = nd.y + (nd.y2 - nd.y) * bl.along + bl.oy;
+    } else {
+      x = baseX + (Math.random() - 0.5) * W * 0.35;
+      y = H * (0.12 + Math.random() * 0.3);
+    }
+    petals.push({
+      x: x, y: y,
+      size: 3 + Math.random() * 5,
+      rot: Math.random() * Math.PI * 2,
+      vrot: (Math.random() - 0.5) * 0.07,
+      vy: 0.3 + Math.random() * 0.85,
+      vx: wind.v * 0.5 + (Math.random() - 0.35) * 0.55,
+      amp: 12 + Math.random() * 28,
+      ph: Math.random() * Math.PI * 2,
+      phs: 0.01 + Math.random() * 0.02,
+      a: 0,
+      hue: Math.random()
+    });
+  }
+
+  function drawPetals(dt){
+    var light = isLight();
+    if(!reduce.matches){
+      var rate = 0.45 + Math.abs(wind.v) * 1.1;
+      if(Math.random() < rate * dt * 0.07) spawnPetal(true);
+      if(Math.random() < 0.015 * dt) spawnPetal(false);
+    }
+    for(var i = petals.length - 1; i >= 0; i--){
+      var p = petals[i];
+      p.vy += 0.0035 * dt;
+      p.vx += wind.v * 0.014 * dt;
+      p.vx *= 0.995;
+      p.x += (p.vx + Math.sin(p.ph) * 0.18) * dt;
+      p.y += p.vy * dt;
+      p.ph += p.phs * dt;
+      p.rot += p.vrot * dt;
+      if(p.a < 0.88) p.a += 0.03 * dt;
+      if(p.y > H * 0.9) p.a -= 0.03 * dt;
+      if(p.y > H + 24 || p.a <= 0 || p.x < -50 || p.x > W + 50){
+        petals.splice(i, 1); continue;
+      }
+      var xx = p.x + Math.sin(p.ph) * p.amp;
+      var s = p.size;
+      var col = light
+        ? (p.hue < 0.5 ? "rgba(233,138,175," : "rgba(222,120,160,")
+        : (p.hue < 0.5 ? "rgba(255,183,209," : "rgba(255,146,190,");
+      ctx.save();
+      ctx.translate(xx, p.y);
+      ctx.rotate(p.rot + Math.sin(p.ph) * 0.45);
+      ctx.fillStyle = col + Math.max(0, p.a).toFixed(3) + ")";
+      ctx.beginPath();
+      ctx.moveTo(0, -s);
+      ctx.bezierCurveTo(s * 0.66, -s * 0.5, s * 0.5, s * 0.62, 0, s);
+      ctx.bezierCurveTo(-s * 0.5, s * 0.62, -s * 0.66, -s * 0.5, 0, -s);
+      ctx.fill();
+      ctx.restore();
+    }
+  }
+
+  /* ---- ornaments follow branches ---- */
+  function updateOrnaments(time, dt){
+    for(var i = 0; i < ornaments.length; i++){
+      var o = ornaments[i];
+      var nd = o.slot.node;
+      var along = o.slot.along;
+      var px = nd.x + (nd.x2 - nd.x) * along;
+      var py = nd.y + (nd.y2 - nd.y) * along;
+
+      var target = wind.v * 0.14 + Math.sin(time * 1.25 + i * 0.9) * 0.07 + (mouse.x - 0.5) * 0.1;
+      o.swingV += (target - o.swing) * 0.09 * dt;
+      o.swingV *= Math.pow(0.9, dt);
+      o.swing += o.swingV * dt;
+
+      var ang = o.swing;
+      var drop = o.drop;
+      var tx = px + Math.sin(ang) * drop;
+      var ty = py + Math.cos(ang) * drop;
+
+      o.el.style.transform =
+        "translate(" + tx.toFixed(2) + "px," + ty.toFixed(2) + "px) rotate(" + (ang * 16).toFixed(3) + "deg) translate(-50%,0)";
+    }
+  }
+
+  function updateWind(time, dt){
+    wind.gustT -= dt;
+    if(wind.gustT <= 0){
+      wind.target = (Math.random() - 0.3) * 1.6;
+      wind.gustT = (2 + Math.random() * 5) * 60;
+    }
+    wind.v += (wind.target - wind.v) * 0.018 * dt;
+    wind.v += Math.sin(time * 0.35) * 0.003 * dt;
+  }
+
+  /* ---- loop ---- */
+  var last = performance.now();
+  function frame(now){
+    if(!running) return;
+    var dt = Math.min(2.5, (now - last) / 16.666);
+    last = now;
+    var time = (now - t0) / 1000;
+
+    mouse.x += (mouse.tx - mouse.x) * 0.06;
+    mouse.y += (mouse.ty - mouse.y) * 0.06;
+
+    if(!reduce.matches){
+      updateWind(time, dt);
+      animateStructure(time);
+      drawTree(time);
+      drawPetals(dt);
+      updateOrnaments(time, dt);
+    } else {
+      poseRest();
+      drawTree(0);
+      updateOrnaments(0, 1);
+    }
+    raf = requestAnimationFrame(frame);
+  }
+
+  function start(){
+    if(running) return;
+    running = true;
+    last = performance.now();
+    raf = requestAnimationFrame(frame);
+  }
+  function stop(){
+    running = false;
+    if(raf) cancelAnimationFrame(raf);
+    raf = null;
+  }
+
+  function resize(){
+    DPR = Math.min(window.devicePixelRatio || 1, 2);
+    W = window.innerWidth;
+    H = window.innerHeight;
+    canvas.width = Math.floor(W * DPR);
+    canvas.height = Math.floor(H * DPR);
+    canvas.style.width = W + "px";
+    canvas.style.height = H + "px";
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    petals = [];
+    buildTree();
+    poseRest();
+  }
+
+  window.addEventListener("resize", (function(){
+    var z; return function(){ clearTimeout(z); z = setTimeout(resize, 120); };
+  })(), { passive: true });
+
+  window.addEventListener("pointermove", function(e){
+    mouse.tx = e.clientX / window.innerWidth;
+    mouse.ty = e.clientY / window.innerHeight;
+  }, { passive: true });
+
+  window.addEventListener("pointerdown", function(e){
+    if(e.target.closest && e.target.closest("a,button")) return;
+    wind.target = (e.clientX / W - 0.5) * 2.8;
+    wind.gustT = 2.5 * 60;
+    for(var i = 0; i < 10; i++) spawnPetal(true);
+  }, { passive: true });
+
+  document.addEventListener("visibilitychange", function(){
+    if(document.hidden) stop(); else start();
+  });
+
+  if(reduce.addEventListener){
+    reduce.addEventListener("change", function(){ if(!reduce.matches) start(); });
+  }
+
+  resize();
+  start();
+})();
+</script>
+</body>
+</html>
