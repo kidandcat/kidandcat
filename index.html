@@ -274,12 +274,12 @@ html[data-theme="light"] .toggle .ti-moon{display:none}
   var baseX = 0, baseY = 0;
   var bloomSprites = []; // pre-rendered soft flowers — stamped with drawImage
   var petalSprite = null;
-  var quality = 1; // 1 = full, 0.5 = thrifty (auto after lag)
-  var frameBudgetMs = 16.5;
+  var quality = 1; // 1 = full, 0.5 = thrifty (only drops falling petals / fine twigs)
   var skipPetals = false;
-  var MAX_BLOOMS = 900;
+  var MAX_BLOOMS = 2800; // hard safety only — real limit is tip walk after grow
   var MAX_PETALS = 40;
   var barkPalette = null;
+  var MOUSE_R = 150; // px: only tips near cursor get a gentle nudge
 
   function rand(){
     seed |= 0; seed = seed + 0x6D2B79F5 | 0;
@@ -320,7 +320,7 @@ html[data-theme="light"] .toggle .ti-moon{display:none}
 
     function grow(node, depth){
       if(depth >= maxDepth || node.len < 10 * scale){
-        addCluster(node, scale, true);
+        // hang candidates only here; blossoms are placed in a fair pass after grow
         if(depth >= 3) hangSlots.push({ node: node, along: 0.9, prefer: depth <= 6 ? 1 : 0.35 });
         return;
       }
@@ -346,7 +346,6 @@ html[data-theme="light"] .toggle .ti-moon{display:none}
           var len = node.len * (0.55 + rand() * 0.22);
           var limb = makeNode(node, len, ang, 1, node.thick * (0.42 + rand() * 0.1));
           hangSlots.push({ node: limb, along: 0.85, prefer: 1.3 });
-          addCluster(limb, scale, false);
           grow(limb, 2);
         }
         return;
@@ -374,23 +373,23 @@ html[data-theme="light"] .toggle .ti-moon{display:none}
           });
         }
 
-        if(depth >= 3 && rand() < (depth < 6 ? 0.28 : 0.14)) addCluster(child, scale, false);
-
         grow(child, depth + 1);
       }
 
       if(depth > 1 && depth < 7 && rand() < 0.35){
         var spur = makeNode(node, node.len * rrange(0.35, 0.5),
           (rand() < 0.5 ? -1 : 1) * rrange(0.5, 1.0), depth + 2, node.thick * 0.55);
-        addCluster(spur, scale, true);
         grow(spur, depth + 2);
       }
     }
 
     grow(trunk, 0);
     poseRest();
+
+    // Fair blossom pass: every tip / outer limb gets flowers (no left-first starvation)
+    placeBloomsEvenly(scale);
+
     drawOrder = flat.slice().sort(function(a, b){ return a.depth - b.depth; });
-    // cache stroke widths
     for(var di = 0; di < drawOrder.length; di++){
       var dn = drawOrder[di];
       dn.lw = Math.max(0.7, dn.thick * (1 - dn.depth * 0.012));
@@ -407,16 +406,47 @@ html[data-theme="light"] .toggle .ti-moon{display:none}
     assignOrnaments();
   }
 
-  function addCluster(node, scale, isTip){
+  function placeBloomsEvenly(scale){
+    blooms = [];
+    // Pass 1 — every leaf tip gets a base cluster (covers whole canopy)
+    var tips = [];
+    for(var i = 0; i < flat.length; i++){
+      var n = flat[i];
+      if(!n.children.length && n.depth >= 2) tips.push(n);
+    }
+    // shuffle so neither side is preferred if we hit MAX
+    for(var s = tips.length - 1; s > 0; s--){
+      var j = (rand() * (s + 1)) | 0;
+      var tmp = tips[s]; tips[s] = tips[j]; tips[j] = tmp;
+    }
+    for(var t = 0; t < tips.length; t++){
+      addCluster(tips[t], scale, true, 5 + (rand() * 5 | 0));
+    }
+    // Pass 2 — mid outer limbs for denser canopy (still shuffled)
+    var mids = [];
+    for(var m = 0; m < flat.length; m++){
+      var nd = flat[m];
+      if(nd.depth >= 3 && nd.depth <= 6 && nd.children.length) mids.push(nd);
+    }
+    for(var u = mids.length - 1; u > 0; u--){
+      var v = (rand() * (u + 1)) | 0;
+      var tmp2 = mids[u]; mids[u] = mids[v]; mids[v] = tmp2;
+    }
+    for(var k = 0; k < mids.length; k++){
+      if(rand() < 0.55) addCluster(mids[k], scale, false, 2 + (rand() * 3 | 0));
+    }
+  }
+
+  function addCluster(node, scale, isTip, count){
     if(blooms.length >= MAX_BLOOMS) return;
-    var n = isTip ? (3 + (rand() * 3 | 0)) : (1 + (rand() * 2 | 0));
+    var n = count != null ? count : (isTip ? (5 + (rand() * 5 | 0)) : (2 + (rand() * 3 | 0)));
     for(var i = 0; i < n && blooms.length < MAX_BLOOMS; i++){
       blooms.push({
         node: node,
-        along: isTip ? (0.5 + rand() * 0.48) : (0.25 + rand() * 0.6),
-        ox: rrange(-14, 14) * scale,
-        oy: rrange(-12, 10) * scale,
-        r: rrange(3.2, 7.5) * scale * (isTip ? 1 : 0.88),
+        along: isTip ? (0.45 + rand() * 0.52) : (0.2 + rand() * 0.7),
+        ox: rrange(-16, 16) * scale,
+        oy: rrange(-14, 12) * scale,
+        r: rrange(3.4, 8.0) * scale * (isTip ? 1 : 0.9),
         sprite: (rand() * 8) | 0,
         tw: rrange(0, Math.PI * 2),
         tws: rrange(0.4, 1.2)
@@ -489,6 +519,8 @@ html[data-theme="light"] .toggle .ti-moon{display:none}
       else { n.x = n.parent.x2; n.y = n.parent.y2; n.absAng = n.parent.absAng + n.angle0; }
       n.x2 = n.x + Math.cos(n.absAng) * n.len;
       n.y2 = n.y + Math.sin(n.absAng) * n.len;
+      // freeze rest tips for mouse proximity (stable, not thrashing with wind)
+      n.rx2 = n.x2; n.ry2 = n.y2;
     }
   }
 
@@ -552,16 +584,36 @@ html[data-theme="light"] .toggle .ti-moon{display:none}
   }
 
   function animateStructure(time){
-    var gust = wind.v;
-    var mx = (mouse.x - 0.5);
-    var breeze = Math.sin(time * 1.05) * 0.55 + Math.sin(time * 0.33) * 0.25 + gust;
+    // Soft ambient breeze only — trunk barely moves; tips flutter a little.
+    // Mouse only nudges nearby tips (distance falloff), never the whole tree.
+    var gust = wind.v * 0.35;
+    var breeze = Math.sin(time * 0.7) * 0.22 + Math.sin(time * 0.27) * 0.12 + gust;
+    var curX = mouse.x * W;
+    var curY = mouse.y * H;
+    var r2 = MOUSE_R * MOUSE_R;
+
     for(var i = 0; i < flat.length; i++){
       var n = flat[i];
-      var localWind = (breeze + Math.sin(time + n.phase) * 0.35) * n.flex
-        + mx * (0.03 + n.depth * 0.009);
+      // depth scale: roots ~0, outer twigs full flutter
+      var depthAmp = n.depth < 2 ? 0.04 : (n.depth < 4 ? 0.2 : 1);
+      var localWind = (breeze + Math.sin(time * 0.9 + n.phase) * 0.18) * n.flex * depthAmp * 0.55;
+
+      // mouse: only leaf tips near the cursor (rest position → stable falloff)
+      if(n.depth >= 5 && !n.children.length && n.rx2 != null){
+        var dx = n.rx2 - curX;
+        var dy = n.ry2 - curY;
+        var d2 = dx * dx + dy * dy;
+        if(d2 < r2){
+          var fall = 1 - d2 / r2;
+          fall = fall * fall;
+          localWind += fall * 0.014 * (dx > 0 ? 0.35 : -0.35);
+          localWind += fall * Math.sin(time * 2.2 + n.phase) * 0.01;
+        }
+      }
+
       if(!n.parent){
         n.x = baseX; n.y = baseY;
-        n.absAng = n.angle0 + localWind * 0.22;
+        n.absAng = n.angle0 + localWind * 0.15;
       } else {
         n.x = n.parent.x2; n.y = n.parent.y2;
         n.absAng = n.parent.absAng + n.angle0 + localWind;
@@ -608,16 +660,16 @@ html[data-theme="light"] .toggle .ti-moon{display:none}
       ctx.stroke();
     }
 
+    // Always draw every bloom (sprites are cheap) — never starve half the canopy
     var sprites = bloomSprites;
     if(!sprites.length) return;
-    var bloomStep = quality < 1 ? 2 : 1;
-    for(var b = 0; b < blooms.length; b += bloomStep){
+    for(var b = 0; b < blooms.length; b++){
       var bl = blooms[b];
       var nd = bl.node;
       var bx = nd.x + (nd.x2 - nd.x) * bl.along + bl.ox;
       var by = nd.y + (nd.y2 - nd.y) * bl.along + bl.oy;
       var r = bl.r;
-      if(quality >= 1) r *= 0.97 + Math.sin(time * bl.tws + bl.tw) * 0.03;
+      if(quality >= 1) r *= 0.98 + Math.sin(time * bl.tws + bl.tw) * 0.02;
       var spr = sprites[bl.sprite];
       var sz = r * 3.4;
       ctx.drawImage(spr, bx - sz * 0.5, by - sz * 0.5, sz, sz);
@@ -688,9 +740,10 @@ html[data-theme="light"] .toggle .ti-moon{display:none}
       var along = o.slot.along;
       var px = nd.x + (nd.x2 - nd.x) * along;
       var py = nd.y + (nd.y2 - nd.y) * along;
-      var target = wind.v * 0.14 + Math.sin(time * 1.25 + i * 0.9) * 0.07 + (mouse.x - 0.5) * 0.1;
-      o.swingV += (target - o.swing) * 0.09 * dt;
-      o.swingV *= Math.pow(0.9, dt);
+      // soft pendulum only — mouse barely affects badges
+      var target = wind.v * 0.06 + Math.sin(time * 1.1 + i * 0.9) * 0.04;
+      o.swingV += (target - o.swing) * 0.06 * dt;
+      o.swingV *= Math.pow(0.92, dt);
       o.swing += o.swingV * dt;
       var ang = o.swing;
       var tx = px + Math.sin(ang) * o.drop;
@@ -703,11 +756,11 @@ html[data-theme="light"] .toggle .ti-moon{display:none}
   function updateWind(time, dt){
     wind.gustT -= dt;
     if(wind.gustT <= 0){
-      wind.target = (Math.random() - 0.3) * 1.6;
-      wind.gustT = (2 + Math.random() * 5) * 60;
+      wind.target = (Math.random() - 0.35) * 0.7; // gentler gusts
+      wind.gustT = (3 + Math.random() * 6) * 60;
     }
-    wind.v += (wind.target - wind.v) * 0.018 * dt;
-    wind.v += Math.sin(time * 0.35) * 0.003 * dt;
+    wind.v += (wind.target - wind.v) * 0.012 * dt;
+    wind.v += Math.sin(time * 0.3) * 0.002 * dt;
   }
 
   var last = performance.now();
@@ -721,8 +774,9 @@ html[data-theme="light"] .toggle .ti-moon{display:none}
     var time = (now - t0) / 1000;
 
     avgFrame = avgFrame * 0.9 + frameMs * 0.1;
-    if(avgFrame > 28){ quality = 0.5; skipPetals = avgFrame > 40; }
-    else if(avgFrame < 18){ quality = 1; skipPetals = false; }
+    // thrifty mode only drops falling petals / fine twigs — never blooms
+    if(avgFrame > 32){ quality = 0.5; skipPetals = avgFrame > 42; }
+    else if(avgFrame < 20){ quality = 1; skipPetals = false; }
 
     var th = root.getAttribute("data-theme");
     if(th !== themeWatch){
@@ -730,8 +784,9 @@ html[data-theme="light"] .toggle .ti-moon{display:none}
       buildSprites(th === "light");
     }
 
-    mouse.x += (mouse.tx - mouse.x) * 0.06;
-    mouse.y += (mouse.ty - mouse.y) * 0.06;
+    // slow cursor follow — no snappy tree lurch
+    mouse.x += (mouse.tx - mouse.x) * 0.03;
+    mouse.y += (mouse.ty - mouse.y) * 0.03;
 
     if(!reduce.matches){
       updateWind(time, dt);
