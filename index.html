@@ -324,72 +324,125 @@ const barkDarkMat = new THREE.MeshStandardMaterial({
   color: 0x3a241c, roughness: 0.9, metalness: 0.04
 });
 
-/* Flower petal geometry (simple double-sided soft disc cluster unit) */
+/* ---------- Sakura flower geometry (rounded notched petals, not stars) ---------- */
+function makeSinglePetalShape(){
+  // Classic sakura petal: wide rounded body + notch at the tip
+  const s = new THREE.Shape();
+  s.moveTo(0, 0.01);
+  s.bezierCurveTo(0.055, 0.02, 0.075, 0.07, 0.055, 0.11);
+  s.bezierCurveTo(0.04, 0.13, 0.018, 0.125, 0.008, 0.112); // into notch
+  s.lineTo(0, 0.1);
+  s.lineTo(-0.008, 0.112);
+  s.bezierCurveTo(-0.018, 0.125, -0.04, 0.13, -0.055, 0.11);
+  s.bezierCurveTo(-0.075, 0.07, -0.055, 0.02, 0, 0.01);
+  return s;
+}
+
 function makeFlowerGeo(){
-  // 5-petal flat flower
-  const shape = new THREE.Shape();
+  // Merge 5 petals + tiny center disc into one BufferGeometry
+  const geos = [];
+  const petalShape = makeSinglePetalShape();
   for(let i = 0; i < 5; i++){
-    const a0 = (i / 5) * Math.PI * 2 - Math.PI / 2;
-    const a1 = ((i + 0.5) / 5) * Math.PI * 2 - Math.PI / 2;
-    const a2 = ((i + 1) / 5) * Math.PI * 2 - Math.PI / 2;
-    const rIn = 0.04, rOut = 0.14;
-    if(i === 0) shape.moveTo(Math.cos(a0) * rIn, Math.sin(a0) * rIn);
-    shape.quadraticCurveTo(
-      Math.cos(a1) * rOut, Math.sin(a1) * rOut,
-      Math.cos(a2) * rIn, Math.sin(a2) * rIn
-    );
+    const g = new THREE.ShapeGeometry(petalShape, 8);
+    const ang = (i / 5) * Math.PI * 2;
+    g.rotateZ(ang);
+    geos.push(g);
   }
-  const geo = new THREE.ShapeGeometry(shape, 6);
-  geo.center();
-  return geo;
+  // center
+  const center = new THREE.CircleGeometry(0.018, 10);
+  geos.push(center);
+
+  // manual merge (avoid BufferGeometryUtils dependency)
+  let count = 0;
+  for(const g of geos) count += g.attributes.position.count;
+  const pos = new Float32Array(count * 3);
+  const norm = new Float32Array(count * 3);
+  const uvs = new Float32Array(count * 2);
+  const idx = [];
+  let po = 0, uo = 0, vBase = 0;
+  for(const g of geos){
+    const p = g.attributes.position;
+    const n = g.attributes.normal;
+    const u = g.attributes.uv;
+    for(let i = 0; i < p.count; i++){
+      pos[po] = p.getX(i); pos[po+1] = p.getY(i); pos[po+2] = p.getZ(i);
+      if(n){ norm[po] = n.getX(i); norm[po+1] = n.getY(i); norm[po+2] = n.getZ(i); }
+      else { norm[po] = 0; norm[po+1] = 0; norm[po+2] = 1; }
+      if(u){ uvs[uo] = u.getX(i); uvs[uo+1] = u.getY(i); }
+      po += 3; uo += 2;
+    }
+    if(g.index){
+      for(let i = 0; i < g.index.count; i++) idx.push(g.index.getX(i) + vBase);
+    } else {
+      for(let i = 0; i < p.count; i++) idx.push(vBase + i);
+    }
+    vBase += p.count;
+    g.dispose();
+  }
+  const merged = new THREE.BufferGeometry();
+  merged.setAttribute("position", new THREE.BufferAttribute(pos, 3));
+  merged.setAttribute("normal", new THREE.BufferAttribute(norm, 3));
+  merged.setAttribute("uv", new THREE.BufferAttribute(uvs, 2));
+  merged.setIndex(idx);
+  merged.computeVertexNormals();
+  // lay flat in XY, face +Z; we'll orient when placing
+  return merged;
+}
+
+function makeFallingPetalGeo(){
+  const g = new THREE.ShapeGeometry(makeSinglePetalShape(), 8);
+  g.center();
+  g.scale(1.4, 1.4, 1.4);
+  return g;
 }
 
 const flowerMat = new THREE.MeshStandardMaterial({
-  color: 0xff9ec4,
-  emissive: 0xff6aa0,
-  emissiveIntensity: 0.18,
-  roughness: 0.65,
-  metalness: 0.0,
-  side: THREE.DoubleSide,
-  transparent: true,
-  opacity: 0.92,
-  depthWrite: false
-});
-const flowerMatDeep = new THREE.MeshStandardMaterial({
-  color: 0xf070a8,
-  emissive: 0xd04080,
+  color: 0xffb0cc,
+  emissive: 0xff80a8,
   emissiveIntensity: 0.12,
   roughness: 0.7,
   metalness: 0.0,
   side: THREE.DoubleSide,
   transparent: true,
-  opacity: 0.88,
+  opacity: 0.95,
   depthWrite: false
 });
-const flowerMatLite = new THREE.MeshStandardMaterial({
-  color: 0xffc8dc,
-  emissive: 0xffa0c0,
+const flowerMatDeep = new THREE.MeshStandardMaterial({
+  color: 0xee88b0,
+  emissive: 0xc05080,
   emissiveIntensity: 0.1,
-  roughness: 0.6,
+  roughness: 0.72,
   metalness: 0.0,
   side: THREE.DoubleSide,
   transparent: true,
-  opacity: 0.9,
+  opacity: 0.93,
   depthWrite: false
 });
+const flowerMatLite = new THREE.MeshStandardMaterial({
+  color: 0xffd0e0,
+  emissive: 0xffb0c8,
+  emissiveIntensity: 0.08,
+  roughness: 0.65,
+  metalness: 0.0,
+  side: THREE.DoubleSide,
+  transparent: true,
+  opacity: 0.94,
+  depthWrite: false
+});
+const FLOWER_GEO = makeFlowerGeo();
+const FLOWER_MATS = [flowerMat, flowerMatDeep, flowerMatLite];
 
 /* ---------- Tree build ---------- */
 const treeRoot = new THREE.Group();
 scene.add(treeRoot);
 
 const branchGroups = []; // for wind
-const hangAnchors = [];  // world-ish local points for tools
-const flowerPositions = []; // for instancing
+const hangAnchors = [];  // tips with blossoms (for tools)
+const tipJoints = [];    // all outer tips — place flowers here
+const flowerClusters = []; // InstancedMesh children of joints
 
 const dummy = new THREE.Object3D();
-const _q = new THREE.Quaternion();
 const _up = new THREE.Vector3(0, 1, 0);
-const _dir = new THREE.Vector3();
 
 function addBranchMesh(from, to, radiusBottom, radiusTop, radial = 7){
   const dir = new THREE.Vector3().subVectors(to, from);
@@ -405,32 +458,74 @@ function addBranchMesh(from, to, radiusBottom, radiusTop, radial = 7){
   return mesh;
 }
 
+/** Attach a local-space flower cluster to a joint so wind moves it */
+function addFlowerCluster(joint, count, spread){
+  const mat = FLOWER_MATS[(rand() * 3) | 0];
+  const mesh = new THREE.InstancedMesh(FLOWER_GEO, mat, count);
+  mesh.frustumCulled = false;
+  mesh.renderOrder = 2;
+  for(let i = 0; i < count; i++){
+    // tight cluster around the tip (local space of joint)
+    dummy.position.set(
+      rrange(-spread, spread),
+      rrange(-spread * 0.35, spread * 0.85),
+      rrange(-spread, spread)
+    );
+    const s = rrange(0.85, 1.45);
+    dummy.scale.setScalar(s);
+    // face roughly outward from tip with variation
+    dummy.rotation.set(
+      rrange(-0.9, 0.9),
+      rrange(0, Math.PI * 2),
+      rrange(-0.9, 0.9)
+    );
+    dummy.updateMatrix();
+    mesh.setMatrixAt(i, dummy.matrix);
+  }
+  mesh.instanceMatrix.needsUpdate = true;
+  joint.add(mesh);
+  flowerClusters.push(mesh);
+}
+
 function growBranch(parentGroup, origin, direction, length, radius, depth, maxDepth){
   direction = direction.clone().normalize();
   // slight droop for sakura weep on outer limbs
-  if(depth > 2) direction.y -= 0.08;
+  if(depth > 2) direction.y -= 0.1;
   direction.normalize();
 
   const end = origin.clone().addScaledVector(direction, length);
   const mesh = addBranchMesh(origin, end, radius, radius * 0.62, depth < 2 ? 10 : 6);
   if(mesh) parentGroup.add(mesh);
 
-  // wind node: a group at end that children attach to
+  // wind node at end — children + flowers attach here
   const joint = new THREE.Group();
   joint.position.copy(end);
   parentGroup.add(joint);
   joint.userData = {
     phase: rrange(0, Math.PI * 2),
     flex: 0.012 + depth * 0.01,
-    depth,
-    restQuat: joint.quaternion.clone()
+    depth
   };
   branchGroups.push(joint);
 
-  if(depth >= maxDepth || length < 0.18){
-    // hang points on outer tips (world score filled after matrix update)
-    if(depth >= 3 && rand() < 0.4){
-      hangAnchors.push({ group: joint, local: new THREE.Vector3(0, -0.08, 0), score: 0 });
+  const isTip = depth >= maxDepth || length < 0.18;
+
+  // blossoms along outer mid-segments (local to joint, slightly back toward parent)
+  if(depth >= 3 && !isTip && rand() < 0.5){
+    const n = 2 + (rand() * 3 | 0);
+    // cluster slightly behind tip along -Y of previous direction is hard in local;
+    // place near joint origin with small spread
+    addFlowerCluster(joint, n, 0.1);
+  }
+
+  if(isTip){
+    tipJoints.push(joint);
+    // dense tip cluster — this IS the canopy, stuck to the branch
+    const n = 10 + (rand() * 12 | 0);
+    addFlowerCluster(joint, n, 0.2);
+    // tools only on blossomed tips
+    if(depth >= 3 && rand() < 0.55){
+      hangAnchors.push({ group: joint, local: new THREE.Vector3(0, -0.12, 0), score: 0 });
     }
     return joint;
   }
@@ -442,23 +537,22 @@ function growBranch(parentGroup, origin, direction, length, radius, depth, maxDe
   else if(depth === 2) childCount = 3;
   else childCount = rand() < 0.55 ? 2 : 3;
 
-  // first child continues mostly upward
   for(let c = 0; c < childCount; c++){
-    const spread = depth === 0
-      ? rrange(-0.85, 0.85)
-      : rrange(-0.7, 0.7);
-    const lift = depth === 0 ? rrange(0.35, 0.75) : rrange(-0.15, 0.55);
-    // build orthonormal basis around direction
+    const spread = depth === 0 ? rrange(-0.85, 0.85) : rrange(-0.7, 0.7);
+    const lift = depth === 0 ? rrange(0.35, 0.75) : rrange(-0.2, 0.5);
     const axis = new THREE.Vector3(rrange(-1,1), rrange(-0.2,1), rrange(-1,1)).normalize();
     const childDir = direction.clone()
       .applyAxisAngle(axis, spread)
       .add(new THREE.Vector3(0, lift * 0.35, 0))
       .normalize();
 
-    // fan primary crown at trunk split
     if(depth === 0){
-      const a = (c / childCount) * Math.PI * 1.6 - Math.PI * 0.8;
-      childDir.set(Math.sin(a) * 0.85, 0.55 + rrange(0, 0.25), Math.cos(a) * 0.55 + rrange(-0.15, 0.15)).normalize();
+      const a = (c / childCount) * Math.PI * 1.7 - Math.PI * 0.85;
+      childDir.set(
+        Math.sin(a) * 0.9,
+        0.48 + rrange(0, 0.28),
+        Math.cos(a) * 0.55 + rrange(-0.15, 0.15)
+      ).normalize();
     }
 
     const childLen = length * rrange(0.62, 0.78);
@@ -466,11 +560,10 @@ function growBranch(parentGroup, origin, direction, length, radius, depth, maxDe
     growBranch(joint, new THREE.Vector3(0, 0, 0), childDir, childLen, childRad, depth + 1, maxDepth);
   }
 
-  // occasional side spur
   if(depth > 0 && depth < maxDepth - 1 && rand() < 0.4){
     const spurDir = direction.clone()
       .applyAxisAngle(new THREE.Vector3(0,1,0), rrange(-1.2, 1.2))
-      .add(new THREE.Vector3(0, rrange(-0.3, 0.2), 0))
+      .add(new THREE.Vector3(0, rrange(-0.35, 0.15), 0))
       .normalize();
     growBranch(joint, new THREE.Vector3(0, 0, 0), spurDir, length * rrange(0.35, 0.5), radius * 0.45, depth + 2, maxDepth);
   }
@@ -479,26 +572,24 @@ function growBranch(parentGroup, origin, direction, length, radius, depth, maxDe
 }
 
 function buildTree(){
-  // clear previous
   while(treeRoot.children.length) treeRoot.remove(treeRoot.children[0]);
   branchGroups.length = 0;
   hangAnchors.length = 0;
-  flowerPositions.length = 0;
+  tipJoints.length = 0;
+  flowerClusters.length = 0;
   seed = 20260731;
 
   const mobile = window.innerWidth < 720;
   const maxDepth = mobile ? 5 : 6;
 
-  // trunk
   const trunkGroup = new THREE.Group();
   treeRoot.add(trunkGroup);
 
   const trunkStart = new THREE.Vector3(0, 0, 0);
   const trunkDir = new THREE.Vector3(0.02, 1, -0.01).normalize();
-  const trunkLen = mobile ? 2.1 : 2.45;
+  const trunkLen = mobile ? 2.0 : 2.3;
   const trunkR = mobile ? 0.16 : 0.2;
 
-  // flared base
   const baseGeo = new THREE.CylinderGeometry(trunkR * 1.55, trunkR * 2.1, 0.35, 12);
   const base = new THREE.Mesh(baseGeo, barkDarkMat);
   base.position.y = 0.12;
@@ -509,101 +600,26 @@ function buildTree(){
   growBranch(trunkGroup, trunkStart, trunkDir, trunkLen, trunkR, 0, maxDepth);
   treeRoot.updateMatrixWorld(true);
 
-  // Score hang anchors in world space
+  // Score hang anchors in world space (only blossomed tips)
   for(const h of hangAnchors){
     const wp = new THREE.Vector3();
     h.group.getWorldPosition(wp);
     h.score = wp.y + Math.hypot(wp.x, wp.z) * 0.35;
   }
 
-  // Dense canopy: outer shell of blossoms (world space, under treeRoot)
-  const crownCenter = new THREE.Vector3(0, trunkLen * 1.05, 0);
-  const fillN = mobile ? 900 : 1800;
-  for(let i = 0; i < fillN; i++){
-    const theta = rand() * Math.PI * 2;
-    const phi = Math.acos(rrange(-0.15, 1)); // bias upper hemisphere
-    let r = Math.cbrt(rand());
-    // denser outer shell (classic sakura mass)
-    if(rand() < 0.65) r = 0.55 + r * 0.45;
-    const rx = mobile ? 2.1 : 2.55;
-    const ry = mobile ? 1.45 : 1.75;
-    const rz = mobile ? 1.9 : 2.25;
-    const p = new THREE.Vector3(
-      crownCenter.x + Math.sin(phi) * Math.cos(theta) * rx * r,
-      crownCenter.y + Math.cos(phi) * ry * r + 0.1,
-      crownCenter.z + Math.sin(phi) * Math.sin(theta) * rz * r
-    );
-    if(p.y < 1.35) continue;
-    flowerPositions.push({
-      p,
-      s: rrange(0.7, 1.45),
-      mat: (rand() * 3) | 0,
-      phase: rrange(0, Math.PI * 2)
-    });
-  }
-  // secondary softer inner fill
-  const innerN = mobile ? 250 : 450;
-  for(let i = 0; i < innerN; i++){
-    const theta = rand() * Math.PI * 2;
-    const phi = Math.acos(rrange(0, 1));
-    const r = Math.cbrt(rand()) * 0.7;
-    const p = new THREE.Vector3(
-      Math.sin(phi) * Math.cos(theta) * 1.6 * r,
-      trunkLen * 0.95 + Math.cos(phi) * 1.1 * r,
-      Math.sin(phi) * Math.sin(theta) * 1.4 * r
-    );
-    if(p.y < 1.5) continue;
-    flowerPositions.push({ p, s: rrange(0.5, 1.0), mat: (rand() * 3) | 0, phase: rrange(0, Math.PI * 2) });
-  }
-
-  buildFlowerInstances();
   placeTools();
 }
 
-let flowerMeshes = [];
-function buildFlowerInstances(){
-  flowerMeshes.forEach(m => {
-    treeRoot.remove(m);
-    m.geometry.dispose();
-  });
-  flowerMeshes = [];
-
-  const geo = makeFlowerGeo();
-  const mats = [flowerMat, flowerMatDeep, flowerMatLite];
-  const buckets = [[], [], []];
-  for(const f of flowerPositions) buckets[f.mat].push(f);
-
-  for(let b = 0; b < 3; b++){
-    const list = buckets[b];
-    if(!list.length) continue;
-    const mesh = new THREE.InstancedMesh(geo, mats[b], list.length);
-    mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
-    mesh.frustumCulled = true;
-    for(let i = 0; i < list.length; i++){
-      const f = list[i];
-      dummy.position.copy(f.p);
-      dummy.scale.setScalar(f.s);
-      // face somewhat outward / random
-      dummy.rotation.set(rrange(-0.6, 0.6), rrange(0, Math.PI * 2), rrange(-0.6, 0.6));
-      dummy.updateMatrix();
-      mesh.setMatrixAt(i, dummy.matrix);
-    }
-    mesh.instanceMatrix.needsUpdate = true;
-    mesh.userData.list = list;
-    treeRoot.add(mesh);
-    flowerMeshes.push(mesh);
-  }
-}
-
-/* Falling petals */
-const PETAL_N = 80;
-const petalGeo = new THREE.PlaneGeometry(0.1, 0.14);
+/* Falling sakura petals (same petal silhouette) */
+const PETAL_N = 90;
+const petalGeo = makeFallingPetalGeo();
 const petalMat = new THREE.MeshStandardMaterial({
-  color: 0xffb0d0, emissive: 0xff80b0, emissiveIntensity: 0.15,
-  side: THREE.DoubleSide, transparent: true, opacity: 0.85, depthWrite: false
+  color: 0xffb0d0, emissive: 0xff80b0, emissiveIntensity: 0.12,
+  side: THREE.DoubleSide, transparent: true, opacity: 0.88, depthWrite: false
 });
 const petalMesh = new THREE.InstancedMesh(petalGeo, petalMat, PETAL_N);
 petalMesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+petalMesh.renderOrder = 3;
 scene.add(petalMesh);
 const petals = [];
 for(let i = 0; i < PETAL_N; i++){
@@ -612,14 +628,13 @@ for(let i = 0; i < PETAL_N; i++){
     vx: rrange(-0.15, 0.15), vy: rrange(-0.35, -0.12), vz: rrange(-0.15, 0.15),
     rot: rrange(0, Math.PI * 2), vrot: rrange(-1.5, 1.5),
     phase: rrange(0, Math.PI * 2), amp: rrange(0.15, 0.45),
-    alive: rand() < 0.4
+    alive: rand() < 0.35
   });
 }
 
-/* Tools as CSS2D */
+/* Tools as CSS2D — only on blossomed tips */
 const toolObjects = [];
 function placeTools(){
-  // clear old labels
   toolObjects.forEach(o => {
     if(o.parent) o.parent.remove(o);
     o.element?.remove();
@@ -628,35 +643,35 @@ function placeTools(){
 
   hangAnchors.sort((a, b) => b.score - a.score);
   const chosen = [];
-  const minD = 0.9;
+  const minD = 0.85;
   for(const h of hangAnchors){
     if(chosen.length >= TOOLS.length) break;
-    // world pos approx
     const wp = new THREE.Vector3();
     h.group.getWorldPosition(wp);
-    wp.add(h.local);
     let ok = true;
     for(const c of chosen){
       if(wp.distanceTo(c.wp) < minD){ ok = false; break; }
     }
-    if(ok && wp.y > 1.0 && wp.y < 4.5) chosen.push({ ...h, wp });
+    if(ok && wp.y > 1.0 && wp.y < 4.8) chosen.push({ ...h, wp });
   }
-  // pad with crown points
-  while(chosen.length < TOOLS.length && flowerPositions.length){
-    const f = flowerPositions[(rand() * flowerPositions.length) | 0];
-    let ok = true;
-    for(const c of chosen){
-      if(f.p.distanceTo(c.wp) < minD){ ok = false; break; }
-    }
-    if(ok && f.p.y > 1.2){
-      const g = new THREE.Group();
-      g.position.copy(f.p);
-      treeRoot.add(g);
-      chosen.push({ group: g, local: new THREE.Vector3(0, -0.15, 0), wp: f.p.clone() });
+  // pad with any tip joints if needed
+  if(chosen.length < TOOLS.length){
+    for(const j of tipJoints){
+      if(chosen.length >= TOOLS.length) break;
+      const wp = new THREE.Vector3();
+      j.getWorldPosition(wp);
+      let ok = true;
+      for(const c of chosen){
+        if(wp.distanceTo(c.wp) < minD){ ok = false; break; }
+      }
+      if(ok && wp.y > 1.2){
+        chosen.push({ group: j, local: new THREE.Vector3(0, -0.12, 0), wp });
+      }
     }
   }
 
   for(let t = 0; t < TOOLS.length && t < chosen.length; t++){
+    // continue with existing loop body - need to fix the rest of placeTools
     const tool = TOOLS[t];
     const anchor = chosen[t];
     const el = document.createElement("a");
@@ -671,8 +686,7 @@ function placeTools(){
     el.querySelector(".label").textContent = tool.name;
 
     const obj = new CSS2DObject(el);
-    obj.position.copy(anchor.local);
-    obj.position.y -= 0.15 + (t % 3) * 0.05;
+    obj.position.copy(anchor.local || new THREE.Vector3(0, -0.12, 0));
     obj.userData = { phase: t * 0.8, drop: 0.12 + (t % 3) * 0.04, swing: 0 };
     anchor.group.add(obj);
     toolObjects.push(obj);
@@ -712,11 +726,21 @@ function animatePetals(dt, t){
   for(let i = 0; i < PETAL_N; i++){
     const p = petals[i];
     if(!p.alive){
-      if(rand() < 0.01){
+      if(rand() < 0.012){
         p.alive = true;
-        p.x = rrange(-2.5, 2.5);
-        p.y = rrange(3.5, 5.5);
-        p.z = rrange(-2.5, 2.5);
+        // spawn from a blossomed tip when possible
+        if(tipJoints.length){
+          const j = tipJoints[(Math.random() * tipJoints.length) | 0];
+          const wp = new THREE.Vector3();
+          j.getWorldPosition(wp);
+          p.x = wp.x + rrange(-0.25, 0.25);
+          p.y = wp.y + rrange(-0.1, 0.2);
+          p.z = wp.z + rrange(-0.25, 0.25);
+        } else {
+          p.x = rrange(-2.5, 2.5);
+          p.y = rrange(3.5, 5.5);
+          p.z = rrange(-2.5, 2.5);
+        }
         p.vy = rrange(-0.4, -0.15);
         p.vx = rrange(-0.2, 0.2);
         p.vz = rrange(-0.2, 0.2);
