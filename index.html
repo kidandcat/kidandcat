@@ -13,16 +13,16 @@
   --font-mono: ui-monospace, "SF Mono", "Cascadia Mono", "JetBrains Mono", Menlo, Consolas, monospace;
 }
 html[data-theme="dark"]{
-  --bg-0:#05060c; --bg-1:#0a0c17;
+  --bg-0:#05060c; --bg-1:#0a0c17; --sky-top:#070a18; --sky-mid:#161028; --glow-warm:#3a1a24;
   --ink:#eef1fb; --ink-dim:#9aa2be; --ink-faint:#5a627e;
   --line-strong:rgba(150,175,255,0.30);
   --accent:#57e6ff; --accent-3:#ff6ea9;
   --panel:rgba(12,16,32,0.55); --panel-brd:rgba(120,150,230,0.22);
-  --string:rgba(255,210,230,0.55); --glow-a:rgba(87,230,255,0.45);
+  --string:rgba(255,210,230,0.5); --glow-a:rgba(87,230,255,0.45);
   --badge-ring:rgba(255,255,255,0.14); --badge-shadow:0 10px 28px -8px rgba(0,0,0,.65);
 }
 html[data-theme="light"]{
-  --bg-0:#e8ecf6; --bg-1:#f3f5fb;
+  --bg-0:#e8ecf6; --bg-1:#f3f5fb; --sky-top:#e6eefb; --sky-mid:#f6e8ef; --glow-warm:#ffe4cc;
   --ink:#161a26; --ink-dim:#4c5470; --ink-faint:#8b93ac;
   --line-strong:rgba(40,60,130,0.22);
   --accent:#0a97b8; --accent-3:#d24f86;
@@ -31,17 +31,37 @@ html[data-theme="light"]{
   --badge-ring:rgba(0,0,0,0.08); --badge-shadow:0 12px 28px -12px rgba(30,45,90,.35);
 }
 *{box-sizing:border-box}
-html,body{margin:0;padding:0;height:100%}
+html,body{margin:0;padding:0}
 body{
+  min-height:100svh; min-height:100dvh;
   font-family:var(--font-sans); color:var(--ink);
   background:var(--bg-1); overflow:hidden;
   -webkit-font-smoothing:antialiased;
   transition:background-color .5s ease, color .5s ease;
 }
-#c{position:fixed;inset:0;z-index:1;display:block;width:100%;height:100%}
-#labels{position:fixed;inset:0;z-index:2;pointer-events:none;overflow:hidden}
-#labels > *{pointer-events:auto}
+.bg{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+.bg .sky{
+  position:absolute;inset:-8%;
+  background:
+    radial-gradient(100% 70% at 55% 18%, var(--sky-mid) 0%, transparent 58%),
+    radial-gradient(80% 55% at 20% 100%, var(--glow-warm) 0%, transparent 55%),
+    linear-gradient(180deg, var(--sky-top) 0%, var(--bg-1) 55%, var(--bg-0) 100%);
+}
+.bg .aura{position:absolute;inset:0;mix-blend-mode:screen;opacity:.8}
+html[data-theme="light"] .bg .aura{mix-blend-mode:multiply;opacity:.4}
+.bg .aura b{position:absolute;border-radius:50%;filter:blur(70px);animation:drift 30s ease-in-out infinite alternate}
+@media (max-width:820px){.bg .aura b{animation:none;filter:blur(48px)}}
+.bg .aura .a1{width:46vmax;height:46vmax;left:42%;top:-18%;background:radial-gradient(circle,var(--accent) 0%,transparent 62%);opacity:.11}
+.bg .aura .a2{width:38vmax;height:38vmax;left:-12%;top:48%;background:radial-gradient(circle,#ffb570 0%,transparent 62%);opacity:.11;animation-delay:-10s}
+.bg .aura .a3{width:34vmax;height:34vmax;left:60%;top:50%;background:radial-gradient(circle,var(--accent-3) 0%,transparent 62%);opacity:.12;animation-delay:-16s}
+@keyframes drift{from{transform:translate3d(0,0,0) scale(1)}to{transform:translate3d(2.5%,-2%,0) scale(1.08)}}
 
+#tree{position:fixed;inset:0;z-index:1;width:100%;height:100%;display:block;pointer-events:none}
+.ground{
+  position:fixed;left:0;right:0;bottom:0;height:24vh;z-index:2;pointer-events:none;
+  background:linear-gradient(180deg, transparent 0%, color-mix(in oklab, var(--bg-0) 50%, transparent) 65%, var(--bg-0) 100%);
+  opacity:.9;
+}
 .hud{position:fixed;inset:0;z-index:6;pointer-events:none}
 .hud .corner{position:absolute;width:22px;height:22px;border:1.5px solid var(--line-strong)}
 .hud .tl{top:14px;left:14px;border-right:0;border-bottom:0}
@@ -89,20 +109,14 @@ html[data-theme="light"] .toggle .ti-moon{display:none}
 .links a{color:var(--ink-dim);text-decoration:none}
 .links a:hover{color:var(--ink)}
 
-/* Tool badges — CSS2D labels */
-.orn{
-  display:block;text-decoration:none;color:inherit;
-  transform:translate(-50%, 0);
-  will-change:transform;
-  pointer-events:auto;
-  cursor:pointer;
-}
+#ornaments{position:fixed;inset:0;z-index:3;pointer-events:none}
+.orn{position:absolute;left:0;top:0;pointer-events:auto;will-change:transform;text-decoration:none;color:inherit}
 .orn::before{
-  content:"";position:absolute;left:50%;top:-22px;width:1px;height:22px;
+  content:"";position:absolute;left:50%;top:-26px;width:1px;height:26px;
   background:linear-gradient(180deg, transparent, var(--string));transform:translateX(-50%);
 }
 .orn .knot{
-  position:absolute;left:50%;top:-3px;width:6px;height:6px;border-radius:50%;
+  position:absolute;left:50%;top:-4px;width:6px;height:6px;border-radius:50%;
   background:color-mix(in oklab, #6b3f2a 70%, var(--accent-3));transform:translateX(-50%);
 }
 .orn .badge{
@@ -112,7 +126,7 @@ html[data-theme="light"] .toggle .ti-moon{display:none}
     0 0 20px -6px color-mix(in oklab,var(--brand,#fff) 55%,transparent);
   transition:transform .18s cubic-bezier(.2,.7,.3,1);overflow:hidden;
 }
-.orn:hover .badge{transform:scale(1.12)}
+.orn:hover .badge{transform:scale(1.1)}
 .orn:focus-visible .badge{outline:2px solid var(--accent);outline-offset:3px}
 .orn .badge img{width:68%;height:68%;object-fit:contain;display:block}
 .orn .label{
@@ -131,17 +145,15 @@ html[data-theme="light"] .toggle .ti-moon{display:none}
   .dot{box-shadow:none}
 }
 </style>
-<script type="importmap">
-{
-  "imports": {
-    "three": "https://unpkg.com/three@0.172.0/build/three.module.js",
-    "three/addons/": "https://unpkg.com/three@0.172.0/examples/jsm/"
-  }
-}
-</script>
 </head>
 <body>
-<canvas id="c"></canvas>
+<div class="bg" aria-hidden="true">
+  <div class="sky"></div>
+  <div class="aura"><b class="a1"></b><b class="a2"></b><b class="a3"></b></div>
+</div>
+<canvas id="tree" aria-hidden="true"></canvas>
+<div class="ground" aria-hidden="true"></div>
+<div id="ornaments" aria-label="Tools hanging from the tree"></div>
 <div class="hud" aria-hidden="true">
   <span class="corner tl"></span><span class="corner tr"></span>
   <span class="corner bl"></span><span class="corner br"></span>
@@ -157,7 +169,7 @@ html[data-theme="light"] .toggle .ti-moon{display:none}
     </button>
   </header>
   <footer class="foot">
-    <span class="hint">/// drag to orbit · scroll to zoom · tools hang from the branches</span>
+    <span class="hint">/// click for a breeze · tools hang from the branches</span>
     <nav class="links" aria-label="Elsewhere">
       <a href="https://github.com/kidandcat" target="_blank" rel="me noopener noreferrer">github</a>
       <a href="https://x.com/kidandcat" target="_blank" rel="me noopener noreferrer">x</a>
@@ -165,798 +177,669 @@ html[data-theme="light"] .toggle .ti-moon{display:none}
   </footer>
 </div>
 
-<script type="module">
-import * as THREE from "three";
-import { OrbitControls } from "three/addons/controls/OrbitControls.js";
-import { CSS2DRenderer, CSS2DObject } from "three/addons/renderers/CSS2DRenderer.js";
+<script>
+(function () {
+  "use strict";
 
-/* ============================================================
-   3D living sakura — Three.js
-   Recursive tapered branches + instanced blossom canopy.
-   ============================================================ */
+  /* ============================================================
+     2D sakura — fast & pretty
+     - Pre-baked flower + petal sprites (drawImage only)
+     - Thick trunk + few primary arms (simple structure)
+     - Dense tip clusters for canopy mass
+     - Falling petals (classic feel)
+     - DOM tool badges on outer limbs
+     ============================================================ */
 
-const TOOLS = [
-  { name: "Hyperframes", href: "https://hyperframes.heygen.com/", icon: "icons/hyperframes.png", brand: "#A78BFA", bg: "#14101f" },
-  { name: "Impeccable",  href: "https://impeccable.style/",       icon: "icons/impeccable.png",  brand: "#C9A227", bg: "#111111" },
-  { name: "Claude",      href: "https://claude.ai/code",          icon: "icons/claude.png",      brand: "#D97757", bg: "#2a1810" },
-  { name: "Grok",        href: "https://grok.x.ai/",              icon: "icons/grok.png",        brand: "#E8E8E8", bg: "#0a0a0a" },
-  { name: "Takan",       href: "https://takan.es",                icon: "icons/takan.png",       brand: "#6C5CE7", bg: "#14102a" },
-  { name: "shot",        href: "https://github.com/kidandcat/shot", icon: "icons/shot.png",      brand: "#F0F6FC", bg: "#0d1117" },
-  { name: "Flutter",     href: "https://flutter.dev",             icon: "icons/flutter.png",     brand: "#45D1FD", bg: "#042a3a" },
-  { name: "Go",          href: "https://go.dev",                  icon: "icons/go.png",          brand: "#00ADD8", bg: "#06222b" },
-  { name: "Rust",        href: "https://www.rust-lang.org",       icon: "icons/rust.png",        brand: "#DEA584", bg: "#1a120c" },
-  { name: "Tailscale",   href: "https://tailscale.com",           icon: "icons/tailscale.png",   brand: "#8B93A7", bg: "#111318" }
-];
+  var root = document.documentElement;
+  var reduce = window.matchMedia("(prefers-reduced-motion: reduce)");
+  var KEY = "kac-theme";
 
-const root = document.documentElement;
-const KEY = "kac-theme";
-const reduce = window.matchMedia("(prefers-reduced-motion: reduce)");
-
-function applyTheme(t){
-  root.setAttribute("data-theme", t);
-  const m = document.querySelector('meta[name="theme-color"]');
-  if(m) m.setAttribute("content", t === "dark" ? "#05060c" : "#eef1f7");
-  const btn = document.getElementById("themeBtn");
-  if(btn) btn.setAttribute("aria-pressed", String(t === "light"));
-  applySceneTheme(t === "light");
-}
-let saved; try{ saved = localStorage.getItem(KEY); }catch(e){}
-const initialLight = saved ? saved === "light" : window.matchMedia("(prefers-color-scheme: light)").matches;
-document.getElementById("themeBtn").addEventListener("click", () => {
-  const next = root.getAttribute("data-theme") === "dark" ? "light" : "dark";
-  applyTheme(next);
-  try{ localStorage.setItem(KEY, next); }catch(e){}
-});
-
-/* ---------- RNG ---------- */
-let seed = 20260731;
-function rand(){
-  seed |= 0; seed = (seed + 0x6D2B79F5) | 0;
-  let n = Math.imul(seed ^ (seed >>> 15), 1 | seed);
-  n = (n + Math.imul(n ^ (n >>> 7), 61 | n)) ^ n;
-  return ((n ^ (n >>> 14)) >>> 0) / 4294967296;
-}
-function rrange(a, b){ return a + rand() * (b - a); }
-
-/* ---------- Scene ---------- */
-const canvas = document.getElementById("c");
-let renderer;
-try {
-  renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: "high-performance" });
-} catch (err) {
-  document.body.insertAdjacentHTML("beforeend",
-    '<p style="position:fixed;inset:0;display:grid;place-items:center;color:#eef1fb;font:14px/1.5 system-ui;padding:24px;text-align:center;z-index:20">WebGL is required for this page.</p>');
-  throw err;
-}
-renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.75));
-renderer.setSize(window.innerWidth, window.innerHeight);
-renderer.outputColorSpace = THREE.SRGBColorSpace;
-renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.05;
-renderer.shadowMap.enabled = true;
-renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-
-const labelRenderer = new CSS2DRenderer();
-labelRenderer.setSize(window.innerWidth, window.innerHeight);
-labelRenderer.domElement.id = "labels";
-labelRenderer.domElement.style.position = "fixed";
-labelRenderer.domElement.style.inset = "0";
-// Labels must not block orbit; tools re-enable clicks on themselves
-labelRenderer.domElement.style.pointerEvents = "none";
-labelRenderer.domElement.style.zIndex = "2";
-document.body.appendChild(labelRenderer.domElement);
-
-const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(36, window.innerWidth / window.innerHeight, 0.1, 200);
-camera.position.set(1.0, 3.2, 18);
-
-// Bind orbit to the WebGL canvas (not the no-events label overlay)
-const controls = new OrbitControls(camera, canvas);
-controls.enableDamping = true;
-controls.dampingFactor = 0.06;
-controls.enableRotate = true;
-controls.enablePan = false;
-controls.enableZoom = true;
-controls.rotateSpeed = 0.7;
-controls.zoomSpeed = 0.9;
-controls.minDistance = 9;
-controls.maxDistance = 40;
-controls.minPolarAngle = 0.2;
-controls.maxPolarAngle = Math.PI * 0.5;
-controls.target.set(0, 1.4, 0);
-controls.autoRotate = !reduce.matches;
-controls.autoRotateSpeed = 0.35;
-// pause auto-spin while dragging; resume after a while of idle
-let idleTimer = 0;
-controls.addEventListener("start", () => {
-  controls.autoRotate = false;
-  idleTimer = 0;
-});
-controls.addEventListener("end", () => {
-  idleTimer = 0;
-});
-
-/* Lights */
-const hemi = new THREE.HemisphereLight(0xc8d4ff, 0x3a2218, 0.7);
-scene.add(hemi);
-const sun = new THREE.DirectionalLight(0xfff2e8, 1.25);
-sun.position.set(5, 14, 6);
-sun.castShadow = true;
-sun.shadow.mapSize.set(1024, 1024);
-sun.shadow.camera.near = 1;
-sun.shadow.camera.far = 30;
-sun.shadow.camera.left = -8;
-sun.shadow.camera.right = 8;
-sun.shadow.camera.top = 10;
-sun.shadow.camera.bottom = -2;
-sun.shadow.bias = -0.0004;
-scene.add(sun);
-const rim = new THREE.DirectionalLight(0xffa0c8, 0.55);
-rim.position.set(-6, 4, -5);
-scene.add(rim);
-const fill = new THREE.PointLight(0xffb8d8, 0.55, 24, 2);
-fill.position.set(0, 3.5, 3);
-scene.add(fill);
-const bounce = new THREE.PointLight(0xffc0d8, 0.25, 18, 2);
-bounce.position.set(-2, 1.5, 2);
-scene.add(bounce);
-
-/* Ground */
-const groundGeo = new THREE.CircleGeometry(9, 48);
-const groundMat = new THREE.MeshStandardMaterial({
-  color: 0x0a0c14, roughness: 0.95, metalness: 0.05, transparent: true, opacity: 0.85
-});
-const ground = new THREE.Mesh(groundGeo, groundMat);
-ground.rotation.x = -Math.PI / 2;
-ground.position.y = 0;
-ground.receiveShadow = true;
-scene.add(ground);
-
-/* Soft fog */
-scene.fog = new THREE.FogExp2(0x0a0c17, 0.028);
-
-function applySceneTheme(light){
-  if(light){
-    scene.fog.color.set(0xe8ecf6);
-    scene.fog.density = 0.018;
-    groundMat.color.set(0xd8dce8);
-    hemi.color.set(0xe8f0ff); hemi.groundColor.set(0xc8a090); hemi.intensity = 0.75;
-    sun.intensity = 1.0; sun.color.set(0xfff8f0);
-    rim.intensity = 0.3;
-    renderer.setClearColor(0x000000, 0);
-    document.body.style.background = "";
-  } else {
-    scene.fog.color.set(0x0a0c17);
-    scene.fog.density = 0.028;
-    groundMat.color.set(0x0a0c14);
-    hemi.color.set(0xb8c8ff); hemi.groundColor.set(0x2a1a18); hemi.intensity = 0.55;
-    sun.intensity = 1.15; sun.color.set(0xfff0e0);
-    rim.intensity = 0.45;
+  function applyTheme(t) {
+    root.setAttribute("data-theme", t);
+    var m = document.querySelector('meta[name="theme-color"]');
+    if (m) m.setAttribute("content", t === "dark" ? "#05060c" : "#eef1f7");
+    var btn = document.getElementById("themeBtn");
+    if (btn) btn.setAttribute("aria-pressed", String(t === "light"));
   }
-}
+  var saved;
+  try { saved = localStorage.getItem(KEY); } catch (e) {}
+  applyTheme(saved || (window.matchMedia("(prefers-color-scheme: light)").matches ? "light" : "dark"));
+  document.getElementById("themeBtn").addEventListener("click", function () {
+    var next = root.getAttribute("data-theme") === "dark" ? "light" : "dark";
+    applyTheme(next);
+    try { localStorage.setItem(KEY, next); } catch (e) {}
+    buildSprites(next === "light");
+  });
 
-/* ---------- Materials ---------- */
-const barkMat = new THREE.MeshStandardMaterial({
-  color: 0x3d2a22, roughness: 0.92, metalness: 0.02
-});
-const barkDarkMat = new THREE.MeshStandardMaterial({
-  color: 0x2a1c16, roughness: 0.94, metalness: 0.02
-});
-const barkLiteMat = new THREE.MeshStandardMaterial({
-  color: 0x5a4034, roughness: 0.9, metalness: 0.02
-});
+  var TOOLS = [
+    { name: "Hyperframes", href: "https://hyperframes.heygen.com/", icon: "icons/hyperframes.png", brand: "#A78BFA", bg: "#14101f" },
+    { name: "Impeccable",  href: "https://impeccable.style/",       icon: "icons/impeccable.png",  brand: "#C9A227", bg: "#111111" },
+    { name: "Claude",      href: "https://claude.ai/code",          icon: "icons/claude.png",      brand: "#D97757", bg: "#2a1810" },
+    { name: "Grok",        href: "https://grok.x.ai/",              icon: "icons/grok.png",        brand: "#E8E8E8", bg: "#0a0a0a" },
+    { name: "Takan",       href: "https://takan.es",                icon: "icons/takan.png",       brand: "#6C5CE7", bg: "#14102a" },
+    { name: "shot",        href: "https://github.com/kidandcat/shot", icon: "icons/shot.png",      brand: "#F0F6FC", bg: "#0d1117" },
+    { name: "Flutter",     href: "https://flutter.dev",             icon: "icons/flutter.png",     brand: "#45D1FD", bg: "#042a3a" },
+    { name: "Go",          href: "https://go.dev",                  icon: "icons/go.png",          brand: "#00ADD8", bg: "#06222b" },
+    { name: "Rust",        href: "https://www.rust-lang.org",       icon: "icons/rust.png",        brand: "#DEA584", bg: "#1a120c" },
+    { name: "Tailscale",   href: "https://tailscale.com",           icon: "icons/tailscale.png",   brand: "#8B93A7", bg: "#111318" }
+  ];
 
-/* Soft painted sakura texture (looks far better than hard star geometry) */
-function makeSakuraTexture(){
-  const size = 128;
-  const c = document.createElement("canvas");
-  c.width = size; c.height = size;
-  const g = c.getContext("2d");
-  const cx = size / 2, cy = size / 2;
+  var canvas = document.getElementById("tree");
+  var ctx = canvas.getContext("2d", { alpha: true, desynchronized: true });
+  var W = 0, H = 0, DPR = 1;
+  var t0 = performance.now();
+  var mouse = { x: 0.5, y: 0.4, tx: 0.5, ty: 0.4 };
+  var wind = { v: 0.1, target: 0.1, t: 120 };
+  var limbs = [];
+  var blooms = [];
+  var hangPts = [];
+  var ornaments = [];
+  var petals = [];
+  var flowerSprites = [];
+  var petalSprite = null;
+  var bark = null;
+  var baseX = 0, baseY = 0, trunkW = 28;
+  var running = false, raf = null;
+  var seed = 20260731;
+  var MAX_PETALS = 55;
+  var MOUSE_R = 140;
 
-  // transparent clear
-  g.clearRect(0, 0, size, size);
+  function rand() {
+    seed |= 0; seed = (seed + 0x6D2B79F5) | 0;
+    var n = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+    n = (n + Math.imul(n ^ (n >>> 7), 61 | n)) ^ n;
+    return ((n ^ (n >>> 14)) >>> 0) / 4294967296;
+  }
+  function rrange(a, b) { return a + rand() * (b - a); }
+  function isLight() { return root.getAttribute("data-theme") === "light"; }
+  function lerp(a, b, t) { return a + (b - a) * t; }
 
-  // 5 soft rounded petals with tip notch
-  for(let i = 0; i < 5; i++){
-    const ang = (i / 5) * Math.PI * 2 - Math.PI / 2;
-    g.save();
-    g.translate(cx, cy);
-    g.rotate(ang);
-    // petal body
-    const grad = g.createRadialGradient(0, size * 0.18, 2, 0, size * 0.16, size * 0.22);
-    grad.addColorStop(0, "rgba(255,230,240,0.98)");
-    grad.addColorStop(0.45, "rgba(255,170,200,0.92)");
-    grad.addColorStop(0.85, "rgba(240,120,165,0.55)");
-    grad.addColorStop(1, "rgba(220,90,140,0)");
+  /* ---- Pre-bake sakura flower (rounded notched petals) ---- */
+  function paintFlower(g, size, light) {
+    var cx = size / 2, cy = size / 2;
+    g.clearRect(0, 0, size, size);
+    for (var i = 0; i < 5; i++) {
+      var ang = (i / 5) * Math.PI * 2 - Math.PI / 2;
+      g.save();
+      g.translate(cx, cy);
+      g.rotate(ang);
+      var grad = g.createRadialGradient(0, size * 0.16, 1, 0, size * 0.14, size * 0.22);
+      if (light) {
+        grad.addColorStop(0, "rgba(255,235,242,0.98)");
+        grad.addColorStop(0.4, "rgba(255,175,205,0.9)");
+        grad.addColorStop(0.8, "rgba(245,130,175,0.45)");
+        grad.addColorStop(1, "rgba(230,100,150,0)");
+      } else {
+        grad.addColorStop(0, "rgba(255,220,235,0.96)");
+        grad.addColorStop(0.4, "rgba(255,155,195,0.88)");
+        grad.addColorStop(0.8, "rgba(235,100,155,0.4)");
+        grad.addColorStop(1, "rgba(200,70,120,0)");
+      }
+      g.fillStyle = grad;
+      g.beginPath();
+      g.moveTo(0, size * 0.02);
+      g.bezierCurveTo(size * 0.11, size * 0.05, size * 0.13, size * 0.18, size * 0.055, size * 0.26);
+      g.quadraticCurveTo(size * 0.02, size * 0.22, 0, size * 0.24);
+      g.quadraticCurveTo(-size * 0.02, size * 0.22, -size * 0.055, size * 0.26);
+      g.bezierCurveTo(-size * 0.13, size * 0.18, -size * 0.11, size * 0.05, 0, size * 0.02);
+      g.fill();
+      g.restore();
+    }
+    var cg = g.createRadialGradient(cx, cy, 0, cx, cy, size * 0.055);
+    cg.addColorStop(0, light ? "rgba(255,230,130,0.95)" : "rgba(255,210,100,0.9)");
+    cg.addColorStop(0.7, light ? "rgba(255,190,80,0.55)" : "rgba(255,170,60,0.5)");
+    cg.addColorStop(1, "rgba(255,160,40,0)");
+    g.fillStyle = cg;
+    g.beginPath();
+    g.arc(cx, cy, size * 0.05, 0, Math.PI * 2);
+    g.fill();
+  }
+
+  function paintPetal(g, size, light) {
+    g.clearRect(0, 0, size, size);
+    g.translate(size / 2, size / 2);
+    var grad = g.createRadialGradient(0, size * 0.04, 1, 0, 0, size * 0.38);
+    if (light) {
+      grad.addColorStop(0, "rgba(255,225,235,0.95)");
+      grad.addColorStop(0.5, "rgba(245,150,185,0.88)");
+      grad.addColorStop(1, "rgba(230,100,150,0)");
+    } else {
+      grad.addColorStop(0, "rgba(255,210,225,0.95)");
+      grad.addColorStop(0.5, "rgba(255,145,185,0.85)");
+      grad.addColorStop(1, "rgba(220,90,140,0)");
+    }
     g.fillStyle = grad;
     g.beginPath();
-    g.moveTo(0, size * 0.02);
-    g.bezierCurveTo(size * 0.12, size * 0.06, size * 0.14, size * 0.2, size * 0.06, size * 0.28);
-    // notch
-    g.quadraticCurveTo(size * 0.02, size * 0.24, 0, size * 0.26);
-    g.quadraticCurveTo(-size * 0.02, size * 0.24, -size * 0.06, size * 0.28);
-    g.bezierCurveTo(-size * 0.14, size * 0.2, -size * 0.12, size * 0.06, 0, size * 0.02);
+    g.moveTo(0, -size * 0.3);
+    g.bezierCurveTo(size * 0.2, -size * 0.08, size * 0.16, size * 0.18, 0, size * 0.32);
+    g.bezierCurveTo(-size * 0.16, size * 0.18, -size * 0.2, -size * 0.08, 0, -size * 0.3);
     g.fill();
-    g.restore();
-  }
-  // yellow-green center
-  const cg = g.createRadialGradient(cx, cy, 0, cx, cy, size * 0.06);
-  cg.addColorStop(0, "rgba(255,230,120,0.95)");
-  cg.addColorStop(0.6, "rgba(255,190,80,0.7)");
-  cg.addColorStop(1, "rgba(255,160,60,0)");
-  g.fillStyle = cg;
-  g.beginPath();
-  g.arc(cx, cy, size * 0.055, 0, Math.PI * 2);
-  g.fill();
-
-  const tex = new THREE.CanvasTexture(c);
-  tex.colorSpace = THREE.SRGBColorSpace;
-  tex.anisotropy = 4;
-  return tex;
-}
-
-function makePetalTexture(){
-  const size = 64;
-  const c = document.createElement("canvas");
-  c.width = size; c.height = size;
-  const g = c.getContext("2d");
-  g.clearRect(0, 0, size, size);
-  g.translate(size / 2, size / 2);
-  const grad = g.createRadialGradient(0, size * 0.05, 1, 0, 0, size * 0.4);
-  grad.addColorStop(0, "rgba(255,220,235,0.95)");
-  grad.addColorStop(0.5, "rgba(255,160,195,0.9)");
-  grad.addColorStop(1, "rgba(240,100,150,0)");
-  g.fillStyle = grad;
-  g.beginPath();
-  g.moveTo(0, -size * 0.32);
-  g.bezierCurveTo(size * 0.22, -size * 0.1, size * 0.18, size * 0.2, 0, size * 0.35);
-  g.bezierCurveTo(-size * 0.18, size * 0.2, -size * 0.22, -size * 0.1, 0, -size * 0.32);
-  g.fill();
-  // notch
-  g.globalCompositeOperation = "destination-out";
-  g.beginPath();
-  g.moveTo(0, -size * 0.32);
-  g.lineTo(size * 0.04, -size * 0.2);
-  g.lineTo(0, -size * 0.24);
-  g.lineTo(-size * 0.04, -size * 0.2);
-  g.closePath();
-  g.fill();
-  g.globalCompositeOperation = "source-over";
-  const tex = new THREE.CanvasTexture(c);
-  tex.colorSpace = THREE.SRGBColorSpace;
-  return tex;
-}
-
-const sakuraTex = makeSakuraTexture();
-const petalTex = makePetalTexture();
-
-const flowerMat = new THREE.MeshBasicMaterial({
-  map: sakuraTex,
-  transparent: true,
-  depthWrite: false,
-  side: THREE.DoubleSide,
-  alphaTest: 0.08
-});
-const flowerMatDeep = flowerMat.clone();
-flowerMatDeep.color = new THREE.Color(0xffd0e4);
-const flowerMatLite = flowerMat.clone();
-flowerMatLite.color = new THREE.Color(0xffffff);
-const FLOWER_MATS = [flowerMat, flowerMatDeep, flowerMatLite];
-
-// Simple quad for textured blossom (billboard-ish, rotated freely)
-const FLOWER_GEO = new THREE.PlaneGeometry(0.28, 0.28);
-
-/* ---------- Tree build ---------- */
-const treeRoot = new THREE.Group();
-scene.add(treeRoot);
-
-const branchGroups = [];
-const hangAnchors = [];
-const tipJoints = [];
-const flowerClusters = [];
-
-const dummy = new THREE.Object3D();
-const _up = new THREE.Vector3(0, 1, 0);
-const _yAxis = new THREE.Vector3(0, 1, 0);
-
-function addBranchMesh(parent, from, to, radiusBottom, radiusTop, radial = 8){
-  const dir = new THREE.Vector3().subVectors(to, from);
-  const len = dir.length();
-  if(len < 0.01) return null;
-  const geo = new THREE.CylinderGeometry(radiusTop, radiusBottom, len, radial);
-  geo.translate(0, len / 2, 0);
-  // subtle bark shade by thickness
-  const mat = radiusBottom > 0.14 ? barkDarkMat : (radiusBottom > 0.07 ? barkMat : barkLiteMat);
-  const mesh = new THREE.Mesh(geo, mat);
-  mesh.position.copy(from);
-  mesh.quaternion.setFromUnitVectors(_up, dir.clone().normalize());
-  mesh.castShadow = true;
-  mesh.receiveShadow = true;
-  parent.add(mesh);
-  return mesh;
-}
-
-/** Fibonacci sphere offsets for natural cluster density */
-function fibSphere(i, n, radius){
-  const y = 1 - (i / Math.max(1, n - 1)) * 2;
-  const r = Math.sqrt(Math.max(0, 1 - y * y));
-  const theta = Math.PI * (3 - Math.sqrt(5)) * i;
-  return new THREE.Vector3(
-    Math.cos(theta) * r * radius,
-    y * radius * 0.75,
-    Math.sin(theta) * r * radius
-  );
-}
-
-function addFlowerCluster(joint, count, spread){
-  const mat = FLOWER_MATS[(rand() * 3) | 0];
-  const mesh = new THREE.InstancedMesh(FLOWER_GEO, mat, count);
-  mesh.frustumCulled = true;
-  mesh.renderOrder = 2;
-  for(let i = 0; i < count; i++){
-    const off = fibSphere(i, count, spread);
-    // slight noise
-    off.x += rrange(-spread * 0.12, spread * 0.12);
-    off.y += rrange(-spread * 0.08, spread * 0.15);
-    off.z += rrange(-spread * 0.12, spread * 0.12);
-    dummy.position.copy(off);
-    const s = rrange(0.75, 1.35);
-    dummy.scale.setScalar(s);
-    // mostly face outward from tip center
-    dummy.lookAt(off.x * 2, off.y * 2 + 0.2, off.z * 2);
-    dummy.rotateZ(rrange(0, Math.PI * 2));
-    dummy.updateMatrix();
-    mesh.setMatrixAt(i, dummy.matrix);
-  }
-  mesh.instanceMatrix.needsUpdate = true;
-  joint.add(mesh);
-  flowerClusters.push(mesh);
-}
-
-/**
- * Controlled sakura skeleton:
- * short thick trunk → wide primary fan → secondary/tertiary with droop.
- * Flowers only on outer joints so canopy follows wood.
- */
-function growBranch(parentGroup, origin, direction, length, radius, depth, maxDepth){
-  direction = direction.clone().normalize();
-  // sakura outer limbs weep slightly
-  if(depth >= 3){
-    direction.y -= 0.12 + (depth - 3) * 0.04;
-    direction.normalize();
+    // tip notch
+    g.globalCompositeOperation = "destination-out";
+    g.beginPath();
+    g.moveTo(0, -size * 0.3);
+    g.lineTo(size * 0.035, -size * 0.18);
+    g.lineTo(0, -size * 0.22);
+    g.lineTo(-size * 0.035, -size * 0.18);
+    g.closePath();
+    g.fill();
+    g.globalCompositeOperation = "source-over";
+    g.setTransform(1, 0, 0, 1, 0, 0);
   }
 
-  // curved segment: mid control point for organic bend
-  const mid = origin.clone().addScaledVector(direction, length * 0.5);
-  // lateral curve
-  const side = new THREE.Vector3().crossVectors(direction, _yAxis);
-  if(side.lengthSq() < 1e-6) side.set(1, 0, 0);
-  side.normalize();
-  mid.addScaledVector(side, rrange(-0.08, 0.08) * length);
-  mid.y += rrange(-0.03, 0.05) * length;
-
-  const end = origin.clone().addScaledVector(direction, length);
-  // two-cylinder chain for slight curve
-  addBranchMesh(parentGroup, origin, mid, radius, radius * 0.78, depth < 2 ? 10 : 7);
-  addBranchMesh(parentGroup, mid, end, radius * 0.78, radius * 0.58, depth < 2 ? 9 : 6);
-
-  const joint = new THREE.Group();
-  joint.position.copy(end);
-  parentGroup.add(joint);
-  joint.userData = {
-    phase: rrange(0, Math.PI * 2),
-    flex: 0.01 + depth * 0.009,
-    depth
-  };
-  branchGroups.push(joint);
-
-  const isTip = depth >= maxDepth || length < 0.2;
-
-  // blossoms on outer wood (depth 3+)
-  if(depth >= 3 && !isTip && rand() < 0.65){
-    addFlowerCluster(joint, 4 + (rand() * 5 | 0), 0.12 + depth * 0.01);
-  }
-
-  if(isTip){
-    tipJoints.push(joint);
-    // dense tip puff — main canopy volume
-    const n = 14 + (rand() * 16 | 0);
-    addFlowerCluster(joint, n, 0.22 + rand() * 0.08);
-    if(depth >= 3 && rand() < 0.5){
-      hangAnchors.push({ group: joint, local: new THREE.Vector3(0, -0.14, 0), score: 0 });
+  function buildSprites(light) {
+    flowerSprites = [];
+    // a few size variants baked once
+    for (var v = 0; v < 4; v++) {
+      var size = 64 + v * 8;
+      var c = document.createElement("canvas");
+      c.width = size; c.height = size;
+      paintFlower(c.getContext("2d"), size, light);
+      flowerSprites.push(c);
     }
-    return joint;
+    petalSprite = document.createElement("canvas");
+    petalSprite.width = 32; petalSprite.height = 32;
+    paintPetal(petalSprite.getContext("2d"), 32, light);
+
+    bark = light
+      ? ["#4a2e24", "#5c3a2c", "#6e4838", "rgba(120,78,62,0.88)"]
+      : ["#2c1c18", "#3a2620", "#4a322c", "rgba(88,60,54,0.9)"];
   }
 
-  // child count by depth — wider at crown split
-  let childCount;
-  if(depth === 0) childCount = 6;
-  else if(depth === 1) childCount = 4;
-  else if(depth === 2) childCount = 3;
-  else if(depth === 3) childCount = rand() < 0.7 ? 3 : 2;
-  else childCount = rand() < 0.5 ? 2 : 1;
+  /* ---- Tree: thick trunk + wide primary arms + tip blooms ---- */
+  function buildTree() {
+    limbs = []; blooms = []; hangPts = [];
+    seed = 20260731;
 
-  for(let c = 0; c < childCount; c++){
-    let childDir;
-    if(depth === 0){
-      // wide horizontal sakura fan (broader than tall)
-      const a = (c / childCount) * Math.PI * 1.85 - Math.PI * 0.925;
-      const elev = 0.38 + rrange(0, 0.32);
-      childDir = new THREE.Vector3(
-        Math.sin(a) * (0.95 + rrange(-0.08, 0.08)),
-        elev,
-        Math.cos(a) * (0.65 + rrange(-0.1, 0.12))
-      ).normalize();
-    } else {
-      const axis = new THREE.Vector3(rrange(-1, 1), rrange(0.1, 1), rrange(-1, 1)).normalize();
-      const spread = rrange(0.35, 0.85) * (c % 2 === 0 ? 1 : -1);
-      childDir = direction.clone()
-        .applyAxisAngle(axis, spread)
-        .add(new THREE.Vector3(0, rrange(-0.25, 0.4), 0))
-        .normalize();
+    var mobile = W < 720;
+    var S = Math.min(W, H);
+    baseX = W * 0.5;
+    baseY = H * 0.92;
+    trunkW = S * (mobile ? 0.036 : 0.04);
+
+    // Fit tree into view with margin
+    var trunkH = S * (mobile ? 0.32 : 0.34);
+    var trunkTopY = baseY - trunkH;
+
+    // Trunk polyline (gentle curve)
+    limbs.push({
+      pts: [
+        { x: baseX, y: baseY },
+        { x: baseX + S * 0.014, y: baseY - trunkH * 0.35 },
+        { x: baseX - S * 0.01, y: baseY - trunkH * 0.68 },
+        { x: baseX + S * 0.004, y: trunkTopY }
+      ],
+      width: trunkW,
+      depth: 0,
+      phase: 0.15
+    });
+
+    // Primary arms — wide sakura fan
+    var arms = [
+      { ang: -2.7,  len: 0.28, w: 0.72, bend: -0.38 },
+      { ang: -2.3,  len: 0.32, w: 0.8,  bend: -0.22 },
+      { ang: -1.9,  len: 0.3,  w: 0.86, bend: -0.08 },
+      { ang: -1.55, len: 0.31, w: 0.9,  bend: 0.05 },
+      { ang: -1.2,  len: 0.33, w: 0.9,  bend: 0.08 },
+      { ang: -0.85, len: 0.3,  w: 0.86, bend: 0.15 },
+      { ang: -0.45, len: 0.32, w: 0.8,  bend: 0.25 },
+      { ang: -0.05, len: 0.28, w: 0.72, bend: 0.38 }
+    ];
+    if (mobile) arms = [arms[1], arms[2], arms[3], arms[4], arms[5], arms[6]];
+
+    var fork = { x: baseX, y: trunkTopY };
+
+    for (var i = 0; i < arms.length; i++) {
+      var a = arms[i];
+      var len = S * a.len;
+      var ang = a.ang + rrange(-0.04, 0.04);
+      var midAng = ang + a.bend * 0.45;
+      var tipAng = ang + a.bend;
+      var p0 = { x: fork.x, y: fork.y };
+      var p1 = {
+        x: fork.x + Math.cos(midAng) * len * 0.5 + rrange(-S * 0.006, S * 0.006),
+        y: fork.y + Math.sin(midAng) * len * 0.5 + rrange(-S * 0.006, S * 0.006)
+      };
+      var p2 = {
+        x: fork.x + Math.cos(tipAng) * len,
+        y: fork.y + Math.sin(tipAng) * len
+      };
+
+      limbs.push({
+        pts: [p0, p1, p2],
+        width: trunkW * a.w,
+        depth: 1,
+        phase: rrange(0, Math.PI * 2),
+        tipX: p2.x, tipY: p2.y,
+        midX: p1.x, midY: p1.y
+      });
+
+      // one secondary per arm
+      var side = i % 2 === 0 ? -1 : 1;
+      var sang = tipAng + side * rrange(0.4, 0.7);
+      var slen = len * rrange(0.34, 0.48);
+      var sp0 = { x: lerp(p1.x, p2.x, 0.42), y: lerp(p1.y, p2.y, 0.42) };
+      var sp1 = {
+        x: sp0.x + Math.cos(sang) * slen * 0.5,
+        y: sp0.y + Math.sin(sang) * slen * 0.5
+      };
+      var sp2 = {
+        x: sp0.x + Math.cos(sang + side * 0.12) * slen,
+        y: sp0.y + Math.sin(sang + side * 0.12) * slen
+      };
+      limbs.push({
+        pts: [sp0, sp1, sp2],
+        width: trunkW * a.w * 0.48,
+        depth: 2,
+        phase: rrange(0, Math.PI * 2),
+        tipX: sp2.x, tipY: sp2.y
+      });
+
+      // dense bloom clusters on tips (canopy mass)
+      addBloomCluster(p2.x, p2.y, S * rrange(0.09, 0.13), 22 + (rand() * 14 | 0));
+      addBloomCluster(sp2.x, sp2.y, S * rrange(0.07, 0.1), 16 + (rand() * 10 | 0));
+      // mid-outer fill
+      addBloomCluster(lerp(p1.x, p2.x, 0.65), lerp(p1.y, p2.y, 0.65), S * rrange(0.06, 0.09), 12 + (rand() * 8 | 0));
+      addBloomCluster(lerp(p1.x, p2.x, 0.85), lerp(p1.y, p2.y, 0.85) - S * 0.02, S * rrange(0.05, 0.08), 10 + (rand() * 6 | 0));
+
+      // hang under outer arms
+      hangPts.push({
+        x: lerp(p1.x, p2.x, 0.55),
+        y: lerp(p1.y, p2.y, 0.55) + S * 0.02,
+        score: Math.abs(p2.x - baseX) + p2.y * 0.25
+      });
+      hangPts.push({
+        x: p1.x,
+        y: p1.y + S * 0.015,
+        score: Math.abs(p1.x - baseX) * 0.85 + p1.y * 0.3
+      });
     }
 
-    // length: keep canopy wide; don't shoot sky-high
-    let lenMul = depth === 0 ? rrange(0.72, 0.88)
-      : depth === 1 ? rrange(0.65, 0.8)
-      : depth === 2 ? rrange(0.58, 0.72)
-      : rrange(0.55, 0.7);
-    // outer limbs longer horizontally
-    if(depth === 0 && Math.abs(childDir.x) > 0.5) lenMul *= 1.08;
-
-    const childLen = length * lenMul;
-    const childRad = radius * rrange(0.52, 0.64);
-    growBranch(joint, new THREE.Vector3(0, 0, 0), childDir, childLen, childRad, depth + 1, maxDepth);
-  }
-
-  // side spur for denser silhouette
-  if(depth >= 1 && depth <= 3 && rand() < 0.45){
-    const spurDir = direction.clone()
-      .applyAxisAngle(new THREE.Vector3(0, 1, 0), rrange(-1.3, 1.3))
-      .add(new THREE.Vector3(0, rrange(-0.4, 0.1), 0))
-      .normalize();
-    growBranch(joint, new THREE.Vector3(0, 0, 0), spurDir, length * rrange(0.32, 0.48), radius * 0.42, depth + 2, maxDepth);
-  }
-
-  return joint;
-}
-
-function buildTree(){
-  while(treeRoot.children.length) treeRoot.remove(treeRoot.children[0]);
-  branchGroups.length = 0;
-  hangAnchors.length = 0;
-  tipJoints.length = 0;
-  flowerClusters.length = 0;
-  seed = 20260731;
-
-  const mobile = window.innerWidth < 720;
-  const maxDepth = mobile ? 5 : 6;
-
-  const trunkGroup = new THREE.Group();
-  treeRoot.add(trunkGroup);
-
-  // Multi-segment trunk with gentle S-curve
-  const trunkR = mobile ? 0.17 : 0.22;
-  const segments = [
-    { y: 0.0,  r: trunkR * 1.9 },
-    { y: 0.35, r: trunkR * 1.45 },
-    { y: 0.85, r: trunkR * 1.15 },
-    { y: 1.35, r: trunkR * 0.95 },
-    { y: 1.85, r: trunkR * 0.82 },
-    { y: mobile ? 2.05 : 2.25, r: trunkR * 0.72 }
-  ];
-  // slight lean
-  let px = 0, pz = 0;
-  for(let i = 0; i < segments.length - 1; i++){
-    const a = segments[i];
-    const b = segments[i + 1];
-    const lean = 0.04 * Math.sin(i * 0.9);
-    const from = new THREE.Vector3(px, a.y, pz);
-    px += lean;
-    pz += lean * 0.4;
-    const to = new THREE.Vector3(px, b.y, pz);
-    addBranchMesh(trunkGroup, from, to, a.r, b.r, 12);
-  }
-
-  // Root flare disc-ish base
-  const baseGeo = new THREE.CylinderGeometry(trunkR * 2.0, trunkR * 2.6, 0.28, 14);
-  const base = new THREE.Mesh(baseGeo, barkDarkMat);
-  base.position.y = 0.1;
-  base.castShadow = true;
-  base.receiveShadow = true;
-  trunkGroup.add(base);
-
-  const trunkTop = new THREE.Vector3(px, segments[segments.length - 1].y, pz);
-  const trunkTopJoint = new THREE.Group();
-  trunkTopJoint.position.copy(trunkTop);
-  trunkGroup.add(trunkTopJoint);
-  trunkTopJoint.userData = { phase: 0.2, flex: 0.006, depth: 0 };
-  branchGroups.push(trunkTopJoint);
-
-  // Primary limbs from trunk top — wide sakura fan
-  const primN = mobile ? 5 : 6;
-  const trunkLen = segments[segments.length - 1].y;
-  for(let c = 0; c < primN; c++){
-    const a = (c / primN) * Math.PI * 1.9 - Math.PI * 0.95;
-    const elev = 0.32 + rrange(0.05, 0.28);
-    const dir = new THREE.Vector3(
-      Math.sin(a) * 1.0,
-      elev,
-      Math.cos(a) * 0.7 + rrange(-0.08, 0.08)
-    ).normalize();
-    const len = trunkLen * rrange(0.85, 1.05);
-    const rad = trunkR * rrange(0.48, 0.58);
-    growBranch(trunkTopJoint, new THREE.Vector3(0, 0, 0), dir, len, rad, 1, maxDepth);
-  }
-  // one upward leader for crown height
-  growBranch(
-    trunkTopJoint,
-    new THREE.Vector3(0, 0, 0),
-    new THREE.Vector3(rrange(-0.15, 0.15), 1, rrange(-0.15, 0.15)).normalize(),
-    trunkLen * 0.55,
-    trunkR * 0.42,
-    1,
-    maxDepth
-  );
-
-  treeRoot.updateMatrixWorld(true);
-
-  for(const h of hangAnchors){
-    const wp = new THREE.Vector3();
-    h.group.getWorldPosition(wp);
-    // Prefer mid-lower outer tips for tools (readable under canopy edge)
-    h.score = (4.5 - Math.abs(wp.y - 2.2)) + Math.hypot(wp.x, wp.z) * 0.4;
-  }
-
-  placeTools();
-  fitCameraToTree();
-}
-
-/** Fit full tree with healthy margin on all aspect ratios */
-function fitCameraToTree(){
-  treeRoot.updateMatrixWorld(true);
-  const box = new THREE.Box3().setFromObject(treeRoot);
-  if(box.isEmpty()) return;
-  // Expand box slightly for flower billboards
-  box.expandByScalar(0.35);
-
-  const size = new THREE.Vector3();
-  const center = new THREE.Vector3();
-  box.getSize(size);
-  box.getCenter(center);
-
-  // Look at mid-trunk so base + crown share the frame
-  const target = new THREE.Vector3(center.x, Math.max(1.1, center.y * 0.48), center.z);
-  controls.target.copy(target);
-
-  const aspect = camera.aspect || 1;
-  const fovY = camera.fov * (Math.PI / 180);
-  const fovX = 2 * Math.atan(Math.tan(fovY / 2) * aspect);
-  // Distance needed for height and width
-  const distH = (size.y * 0.55) / Math.tan(fovY / 2);
-  const distW = (size.x * 0.55) / Math.tan(fovX / 2);
-  let dist = Math.max(distH, distW) * 1.35; // margin
-  // ultrawide short windows need more distance
-  if(aspect > 1.8) dist *= 1.12;
-  if(aspect < 0.85) dist *= 1.2;
-  dist = Math.max(14, Math.min(dist, controls.maxDistance * 0.92));
-
-  const dir = new THREE.Vector3(0.22, 0.28, 1).normalize();
-  camera.position.copy(target).addScaledVector(dir, dist);
-  camera.near = 0.1;
-  camera.far = Math.max(100, dist * 5);
-  camera.updateProjectionMatrix();
-  controls.update();
-}
-
-/* Falling sakura petals */
-const PETAL_N = 100;
-const petalGeo = new THREE.PlaneGeometry(0.12, 0.16);
-const petalMat = new THREE.MeshBasicMaterial({
-  map: petalTex,
-  transparent: true,
-  depthWrite: false,
-  side: THREE.DoubleSide,
-  alphaTest: 0.1
-});
-const petalMesh = new THREE.InstancedMesh(petalGeo, petalMat, PETAL_N);
-petalMesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
-petalMesh.renderOrder = 3;
-scene.add(petalMesh);
-const petals = [];
-for(let i = 0; i < PETAL_N; i++){
-  petals.push({
-    x: 0, y: -10, z: 0,
-    vx: 0, vy: 0, vz: 0,
-    rot: 0, vrot: 0,
-    phase: rrange(0, Math.PI * 2), amp: rrange(0.15, 0.5),
-    alive: false
-  });
-}
-
-/* Tools as CSS2D — blossomed tips only */
-const toolObjects = [];
-function placeTools(){
-  toolObjects.forEach(o => {
-    if(o.parent) o.parent.remove(o);
-    o.element?.remove();
-  });
-  toolObjects.length = 0;
-
-  hangAnchors.sort((a, b) => b.score - a.score);
-  const chosen = [];
-  const minD = 0.9;
-  for(const h of hangAnchors){
-    if(chosen.length >= TOOLS.length) break;
-    const wp = new THREE.Vector3();
-    h.group.getWorldPosition(wp);
-    let ok = true;
-    for(const c of chosen){
-      if(wp.distanceTo(c.wp) < minD){ ok = false; break; }
+    // upper crown fill so canopy isn't hollow
+    var crownCX = baseX;
+    var crownCY = trunkTopY - S * 0.1;
+    var nFill = mobile ? 20 : 32;
+    for (var f = 0; f < nFill; f++) {
+      var fa = (f / nFill) * Math.PI * 2 + rrange(-0.12, 0.12);
+      var fd = S * rrange(0.03, 0.22);
+      addBloomCluster(
+        crownCX + Math.cos(fa) * fd * 1.2,
+        crownCY + Math.sin(fa) * fd * 0.7,
+        S * rrange(0.06, 0.1),
+        12 + (rand() * 10 | 0)
+      );
     }
-    if(ok && wp.y > 1.0 && wp.y < 4.5) chosen.push({ ...h, wp });
+    // rim
+    var nRim = mobile ? 14 : 20;
+    for (var r = 0; r < nRim; r++) {
+      var ra = -Math.PI * 0.05 - (r / (nRim - 1)) * Math.PI * 0.9;
+      addBloomCluster(
+        crownCX + Math.cos(ra) * S * 0.32,
+        crownCY + Math.sin(ra) * S * 0.24,
+        S * rrange(0.065, 0.1),
+        12 + (rand() * 8 | 0)
+      );
+    }
+
+    assignOrnaments();
   }
-  if(chosen.length < TOOLS.length){
-    for(const j of tipJoints){
-      if(chosen.length >= TOOLS.length) break;
-      const wp = new THREE.Vector3();
-      j.getWorldPosition(wp);
-      let ok = true;
-      for(const c of chosen){
-        if(wp.distanceTo(c.wp) < minD){ ok = false; break; }
+
+  function addBloomCluster(x, y, spread, n) {
+    for (var i = 0; i < n; i++) {
+      // golden-angle scatter for natural packing
+      var t = i * 2.399;
+      var rad = spread * Math.sqrt((i + 0.5) / n);
+      blooms.push({
+        x: x + Math.cos(t) * rad,
+        y: y + Math.sin(t) * rad * 0.85,
+        rx: x + Math.cos(t) * rad,
+        ry: y + Math.sin(t) * rad * 0.85,
+        r: rrange(14, 28),
+        sprite: (rand() * flowerSprites.length) | 0,
+        phase: rrange(0, Math.PI * 2),
+        flex: rrange(0.008, 0.018),
+        rot: rrange(0, Math.PI * 2)
+      });
+    }
+  }
+
+  function assignOrnaments() {
+    var host = document.getElementById("ornaments");
+    host.innerHTML = "";
+    ornaments = [];
+    hangPts.sort(function (a, b) { return b.score - a.score; });
+
+    var chosen = [];
+    var minD = Math.max(64, W * 0.06);
+    for (var i = 0; i < hangPts.length && chosen.length < TOOLS.length; i++) {
+      var hp = hangPts[i];
+      if (hp.y < H * 0.2 || hp.y > H * 0.72) continue;
+      var ok = true;
+      for (var j = 0; j < chosen.length; j++) {
+        var dx = hp.x - chosen[j].x, dy = hp.y - chosen[j].y;
+        if (dx * dx + dy * dy < minD * minD) { ok = false; break; }
       }
-      if(ok && wp.y > 1.15 && wp.y < 4.2){
-        chosen.push({ group: j, local: new THREE.Vector3(0, -0.14, 0), wp });
-      }
+      if (ok) chosen.push(hp);
     }
-  }
-
-  for(let t = 0; t < TOOLS.length && t < chosen.length; t++){
-    const tool = TOOLS[t];
-    const anchor = chosen[t];
-    const el = document.createElement("a");
-    el.className = "orn";
-    el.href = tool.href;
-    el.target = "_blank";
-    el.rel = "noopener noreferrer";
-    el.title = tool.name;
-    el.innerHTML = `<span class="knot" aria-hidden="true"></span><span class="badge"><img alt="" width="32" height="32" decoding="async" src="${tool.icon}"></span><span class="label"></span>`;
-    el.style.setProperty("--brand", tool.brand);
-    el.querySelector(".badge").style.background = tool.bg;
-    el.querySelector(".label").textContent = tool.name;
-
-    const obj = new CSS2DObject(el);
-    obj.position.copy(anchor.local || new THREE.Vector3(0, -0.14, 0));
-    obj.userData = { phase: t * 0.8, drop: 0.1 + (t % 3) * 0.035 };
-    anchor.group.add(obj);
-    toolObjects.push(obj);
-  }
-}
-
-/* ---------- Animation ---------- */
-const clock = new THREE.Clock();
-let windGust = 0.12;
-let windTarget = 0.12;
-let windT = 0;
-
-function animateBranches(t){
-  windT -= 0.016;
-  if(windT <= 0){
-    windTarget = rrange(0.04, 0.28);
-    windT = rrange(2.5, 5.5);
-  }
-  windGust += (windTarget - windGust) * 0.018;
-  const breeze = Math.sin(t * 0.55) * 0.35 + Math.sin(t * 0.19) * 0.2 + windGust;
-
-  for(const g of branchGroups){
-    const d = g.userData;
-    if(!d || d.depth < 1) continue;
-    // gentler on thick wood, freer at tips
-    const amp = d.flex * (0.15 + d.depth * 0.28) * breeze;
-    g.rotation.x = Math.sin(t * 0.95 + d.phase) * amp;
-    g.rotation.z = Math.cos(t * 0.8 + d.phase * 1.2) * amp * 0.65;
-  }
-}
-
-function animatePetals(dt, t){
-  for(let i = 0; i < PETAL_N; i++){
-    const p = petals[i];
-    if(!p.alive){
-      if(Math.random() < 0.015){
-        p.alive = true;
-        if(tipJoints.length){
-          const j = tipJoints[(Math.random() * tipJoints.length) | 0];
-          const wp = new THREE.Vector3();
-          j.getWorldPosition(wp);
-          p.x = wp.x + rrange(-0.3, 0.3);
-          p.y = wp.y + rrange(-0.05, 0.25);
-          p.z = wp.z + rrange(-0.3, 0.3);
-        } else {
-          p.x = rrange(-2.5, 2.5);
-          p.y = rrange(3, 5);
-          p.z = rrange(-2.5, 2.5);
+    // pad from bloom centers if needed
+    if (chosen.length < TOOLS.length) {
+      for (var b = 0; b < blooms.length && chosen.length < TOOLS.length; b += 7) {
+        var bl = blooms[b];
+        if (bl.ry < H * 0.25 || bl.ry > H * 0.68) continue;
+        var ok2 = true;
+        for (var k = 0; k < chosen.length; k++) {
+          var dx2 = bl.rx - chosen[k].x, dy2 = bl.ry - chosen[k].y;
+          if (dx2 * dx2 + dy2 * dy2 < minD * minD) { ok2 = false; break; }
         }
-        p.vy = rrange(-0.38, -0.12);
-        p.vx = rrange(-0.18, 0.18);
-        p.vz = rrange(-0.18, 0.18);
-        p.rot = rrange(0, Math.PI * 2);
-        p.vrot = rrange(-2, 2);
-        p.amp = rrange(0.2, 0.55);
-      } else {
-        dummy.position.set(0, -20, 0);
-        dummy.scale.setScalar(0);
-        dummy.updateMatrix();
-        petalMesh.setMatrixAt(i, dummy.matrix);
+        if (ok2) chosen.push({ x: bl.rx, y: bl.ry + 18, score: 0 });
+      }
+    }
+
+    for (var t = 0; t < TOOLS.length && t < chosen.length; t++) {
+      var tool = TOOLS[t];
+      var pt = chosen[t];
+      var a = document.createElement("a");
+      a.className = "orn";
+      a.href = tool.href;
+      a.target = "_blank";
+      a.rel = "noopener noreferrer";
+      a.title = tool.name;
+      a.innerHTML = '<span class="knot" aria-hidden="true"></span><span class="badge"><img alt="" width="32" height="32" decoding="async"></span><span class="label"></span>';
+      a.style.setProperty("--brand", tool.brand);
+      a.querySelector(".badge").style.background = tool.bg;
+      var img = a.querySelector("img");
+      img.src = tool.icon;
+      img.alt = tool.name;
+      a.querySelector(".label").textContent = tool.name;
+      host.appendChild(a);
+      ornaments.push({
+        el: a,
+        rx: pt.x, ry: pt.y,
+        x: pt.x, y: pt.y,
+        swing: 0, swingV: 0,
+        drop: 22 + (t % 4) * 7,
+        phase: t * 0.7
+      });
+    }
+  }
+
+  /* ---- Animate ---- */
+  function animate(time) {
+    var breeze = Math.sin(time * 0.55) * 0.4 + Math.sin(time * 0.2) * 0.2 + wind.v * 0.55;
+    var curX = mouse.x * W, curY = mouse.y * H;
+    var r2 = MOUSE_R * MOUSE_R;
+
+    for (var i = 0; i < blooms.length; i++) {
+      var bl = blooms[i];
+      var sway = (breeze + Math.sin(time * 0.9 + bl.phase) * 0.35) * bl.flex * 28;
+      var mx = 0, my = 0;
+      var dx = bl.rx - curX, dy = bl.ry - curY;
+      var d2 = dx * dx + dy * dy;
+      if (d2 < r2) {
+        var fall = 1 - d2 / r2;
+        fall *= fall;
+        mx = fall * 5 * (dx > 0 ? 0.25 : -0.25);
+        my = fall * Math.sin(time * 2 + bl.phase) * 2.5;
+      }
+      bl.x = bl.rx + sway + mx;
+      bl.y = bl.ry + Math.sin(time * 0.7 + bl.phase) * bl.flex * 10 + my;
+    }
+
+    for (var o = 0; o < ornaments.length; o++) {
+      var orn = ornaments[o];
+      orn.x = orn.rx + Math.sin(time * 0.55 + orn.phase) * 1.8;
+      orn.y = orn.ry + Math.sin(time * 0.45 + orn.phase) * 1;
+    }
+  }
+
+  /* ---- Draw ---- */
+  function drawLimb(limb, time) {
+    var pts = limb.pts;
+    if (pts.length < 2) return;
+    var breathe = limb.depth > 0 ? Math.sin(time * 0.55 + limb.phase) * 1.2 : 0;
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+    ctx.strokeStyle = limb.depth === 0 ? bark[0] : limb.depth === 1 ? bark[1] : bark[2];
+    ctx.lineWidth = limb.width;
+    ctx.beginPath();
+    ctx.moveTo(pts[0].x, pts[0].y);
+    if (pts.length === 2) {
+      ctx.lineTo(pts[1].x + breathe, pts[1].y);
+    } else {
+      for (var i = 1; i < pts.length - 1; i++) {
+        var xc = (pts[i].x + pts[i + 1].x) / 2;
+        var yc = (pts[i].y + pts[i + 1].y) / 2;
+        ctx.quadraticCurveTo(pts[i].x, pts[i].y, xc, yc);
+      }
+      var last = pts[pts.length - 1];
+      ctx.quadraticCurveTo(last.x, last.y, last.x + breathe * 0.25, last.y);
+    }
+    ctx.stroke();
+
+    if (limb.depth < 2) {
+      ctx.strokeStyle = isLight() ? "rgba(140,95,70,0.28)" : "rgba(110,80,60,0.22)";
+      ctx.lineWidth = Math.max(1.2, limb.width * 0.2);
+      ctx.beginPath();
+      ctx.moveTo(pts[0].x - limb.width * 0.1, pts[0].y);
+      if (pts.length >= 3) {
+        ctx.quadraticCurveTo(
+          pts[1].x - limb.width * 0.08, pts[1].y,
+          pts[2].x - limb.width * 0.05, pts[2].y
+        );
+      }
+      ctx.stroke();
+    }
+  }
+
+  function drawTrunkBase() {
+    var w = trunkW * 1.5;
+    ctx.fillStyle = bark[0];
+    ctx.beginPath();
+    ctx.moveTo(baseX - w * 0.5, baseY - trunkW * 1.6);
+    ctx.quadraticCurveTo(baseX - w * 1.05, baseY + 2, baseX - w * 0.28, baseY + 3);
+    ctx.lineTo(baseX + w * 0.28, baseY + 3);
+    ctx.quadraticCurveTo(baseX + w * 1.05, baseY + 2, baseX + w * 0.5, baseY - trunkW * 1.6);
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  function draw(time) {
+    ctx.clearRect(0, 0, W, H);
+
+    // ground shadow
+    ctx.fillStyle = isLight() ? "rgba(40,30,50,0.1)" : "rgba(0,0,0,0.38)";
+    ctx.beginPath();
+    ctx.ellipse(baseX, baseY + 2, trunkW * 3.0, trunkW * 0.5, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // wood under canopy
+    drawTrunkBase();
+    for (var d = 0; d <= 2; d++) {
+      for (var i = 0; i < limbs.length; i++) {
+        if (limbs[i].depth === d) drawLimb(limbs[i], time);
+      }
+    }
+
+    // blossoms — only drawImage (cheap)
+    if (!flowerSprites.length) return;
+    for (var b = 0; b < blooms.length; b++) {
+      var bl = blooms[b];
+      var spr = flowerSprites[bl.sprite];
+      var sz = bl.r * (1 + Math.sin(time * 0.65 + bl.phase) * 0.02);
+      ctx.save();
+      ctx.translate(bl.x, bl.y);
+      ctx.rotate(bl.rot + Math.sin(time * 0.3 + bl.phase) * 0.04);
+      ctx.drawImage(spr, -sz * 0.5, -sz * 0.5, sz, sz);
+      ctx.restore();
+    }
+  }
+
+  /* ---- Falling petals (original vibe) ---- */
+  function spawnPetal() {
+    if (petals.length >= MAX_PETALS || !blooms.length) return;
+    var bl = blooms[(Math.random() * blooms.length) | 0];
+    petals.push({
+      x: bl.x + rrange(-8, 8),
+      y: bl.y + rrange(-4, 6),
+      size: 4 + Math.random() * 6,
+      rot: Math.random() * Math.PI * 2,
+      vrot: (Math.random() - 0.5) * 0.07,
+      vy: 0.35 + Math.random() * 0.95,
+      vx: wind.v * 0.4 + (Math.random() - 0.35) * 0.55,
+      amp: 12 + Math.random() * 28,
+      ph: Math.random() * Math.PI * 2,
+      phs: 0.01 + Math.random() * 0.02,
+      a: 0
+    });
+  }
+
+  function drawPetals(dt) {
+    if (!reduce.matches) {
+      var rate = 0.5 + Math.abs(wind.v) * 0.9;
+      if (Math.random() < rate * dt * 0.07) spawnPetal();
+    }
+    if (!petalSprite) return;
+    for (var i = petals.length - 1; i >= 0; i--) {
+      var p = petals[i];
+      p.vy += 0.0035 * dt;
+      p.vx += wind.v * 0.012 * dt;
+      p.vx *= 0.995;
+      p.x += (p.vx + Math.sin(p.ph) * 0.16) * dt;
+      p.y += p.vy * dt;
+      p.ph += p.phs * dt;
+      p.rot += p.vrot * dt;
+      if (p.a < 0.9) p.a += 0.04 * dt;
+      if (p.y > H * 0.9) p.a -= 0.035 * dt;
+      if (p.y > H + 20 || p.a <= 0 || p.x < -40 || p.x > W + 40) {
+        petals.splice(i, 1);
         continue;
       }
+      var xx = p.x + Math.sin(p.ph) * p.amp;
+      var s = p.size * 2.3;
+      ctx.globalAlpha = p.a;
+      ctx.save();
+      ctx.translate(xx, p.y);
+      ctx.rotate(p.rot + Math.sin(p.ph) * 0.35);
+      ctx.drawImage(petalSprite, -s * 0.5, -s * 0.5, s, s);
+      ctx.restore();
     }
-    p.vy -= 0.12 * dt;
-    p.vx += Math.sin(t + p.phase) * 0.025 * dt;
-    p.x += (p.vx + Math.sin(t * 1.4 + p.phase) * p.amp * 0.35) * dt;
-    p.y += p.vy * dt;
-    p.z += (p.vz + Math.cos(t * 1.1 + p.phase) * p.amp * 0.3) * dt;
-    p.rot += p.vrot * dt;
-    if(p.y < 0.02) p.alive = false;
-    dummy.position.set(p.x, p.y, p.z);
-    dummy.rotation.set(p.rot * 0.6, p.rot, p.rot * 0.4);
-    dummy.scale.setScalar(1);
-    dummy.updateMatrix();
-    petalMesh.setMatrixAt(i, dummy.matrix);
+    ctx.globalAlpha = 1;
   }
-  petalMesh.instanceMatrix.needsUpdate = true;
-}
 
-function animateTools(t){
-  for(const o of toolObjects){
-    const u = o.userData;
-    const sway = Math.sin(t * 1.1 + u.phase) * 0.07 * (0.4 + windGust);
-    o.position.x = Math.sin(sway) * u.drop;
-    o.position.y = -0.14 - Math.abs(Math.cos(sway)) * 0.02;
-  }
-}
-
-function onResize(){
-  const w = window.innerWidth, h = window.innerHeight;
-  camera.aspect = w / h;
-  camera.updateProjectionMatrix();
-  renderer.setSize(w, h);
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.75));
-  labelRenderer.setSize(w, h);
-  fitCameraToTree();
-}
-window.addEventListener("resize", onResize);
-
-window.addEventListener("pointerdown", (e) => {
-  if(e.target.closest && e.target.closest("a,button")) return;
-  windTarget = 0.55;
-  windT = 1.8;
-});
-
-function frame(){
-  requestAnimationFrame(frame);
-  const dt = Math.min(0.05, clock.getDelta());
-  const t = clock.elapsedTime;
-
-  if(!reduce.matches){
-    animateBranches(t);
-    animatePetals(dt, t);
-    animateTools(t);
-    // resume gentle auto-orbit after ~6s idle
-    idleTimer += dt;
-    if(idleTimer > 6 && !controls.autoRotate && !reduce.matches){
-      controls.autoRotate = true;
+  function updateOrnaments(time, dt) {
+    for (var i = 0; i < ornaments.length; i++) {
+      var o = ornaments[i];
+      var target = wind.v * 0.05 + Math.sin(time * 1.05 + o.phase) * 0.04;
+      o.swingV += (target - o.swing) * 0.06 * dt;
+      o.swingV *= Math.pow(0.92, dt);
+      o.swing += o.swingV * dt;
+      var ang = o.swing;
+      var tx = o.x + Math.sin(ang) * o.drop;
+      var ty = o.y + Math.cos(ang) * o.drop;
+      o.el.style.transform =
+        "translate(" + (tx | 0) + "px," + (ty | 0) + "px) rotate(" + (ang * 14).toFixed(2) + "deg) translate(-50%,0)";
     }
   }
-  controls.update();
-  renderer.render(scene, camera);
-  labelRenderer.render(scene, camera);
-}
 
-// init
-applyTheme(initialLight ? "light" : "dark");
-buildTree();
-frame();
+  function updateWind(dt) {
+    wind.t -= dt;
+    if (wind.t <= 0) {
+      wind.target = (Math.random() - 0.4) * 0.55;
+      wind.t = (2.5 + Math.random() * 5) * 60;
+    }
+    wind.v += (wind.target - wind.v) * 0.014 * dt;
+  }
+
+  var last = performance.now();
+  var themeWatch = root.getAttribute("data-theme");
+
+  function frame(now) {
+    if (!running) return;
+    var dt = Math.min(2.5, (now - last) / 16.666);
+    last = now;
+    var time = (now - t0) / 1000;
+
+    var th = root.getAttribute("data-theme");
+    if (th !== themeWatch) {
+      themeWatch = th;
+      buildSprites(th === "light");
+    }
+
+    mouse.x += (mouse.tx - mouse.x) * 0.04;
+    mouse.y += (mouse.ty - mouse.y) * 0.04;
+
+    if (!reduce.matches) {
+      updateWind(dt);
+      animate(time);
+      draw(time);
+      drawPetals(dt);
+      updateOrnaments(time, dt);
+    } else {
+      for (var i = 0; i < blooms.length; i++) {
+        blooms[i].x = blooms[i].rx;
+        blooms[i].y = blooms[i].ry;
+      }
+      draw(0);
+      updateOrnaments(0, 1);
+    }
+    raf = requestAnimationFrame(frame);
+  }
+
+  function start() {
+    if (running) return;
+    running = true;
+    last = performance.now();
+    raf = requestAnimationFrame(frame);
+  }
+  function stop() {
+    running = false;
+    if (raf) cancelAnimationFrame(raf);
+    raf = null;
+  }
+
+  function resize() {
+    DPR = Math.min(window.devicePixelRatio || 1, 1.5);
+    W = window.innerWidth;
+    H = window.innerHeight;
+    canvas.width = Math.floor(W * DPR);
+    canvas.height = Math.floor(H * DPR);
+    canvas.style.width = W + "px";
+    canvas.style.height = H + "px";
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = "low";
+    petals = [];
+    buildSprites(isLight());
+    buildTree();
+  }
+
+  window.addEventListener("resize", (function () {
+    var z;
+    return function () { clearTimeout(z); z = setTimeout(resize, 120); };
+  })(), { passive: true });
+
+  window.addEventListener("pointermove", function (e) {
+    mouse.tx = e.clientX / window.innerWidth;
+    mouse.ty = e.clientY / window.innerHeight;
+  }, { passive: true });
+
+  window.addEventListener("pointerdown", function (e) {
+    if (e.target.closest && e.target.closest("a,button")) return;
+    wind.target = (e.clientX / W - 0.5) * 1.2;
+    wind.t = 2 * 60;
+    for (var i = 0; i < 10; i++) spawnPetal();
+  }, { passive: true });
+
+  document.addEventListener("visibilitychange", function () {
+    if (document.hidden) stop(); else start();
+  });
+  if (reduce.addEventListener) {
+    reduce.addEventListener("change", function () { if (!reduce.matches) start(); });
+  }
+
+  resize();
+  start();
+})();
 </script>
 </body>
 </html>
