@@ -89,7 +89,6 @@ html[data-theme="light"] .bg .aura{mix-blend-mode:multiply;opacity:.45}
 }
 .dot{width:7px;height:7px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 0 var(--glow-a);animation:pulse 2.6s ease-out infinite}
 @keyframes pulse{0%{box-shadow:0 0 0 0 var(--glow-a)}70%{box-shadow:0 0 0 10px transparent}100%{box-shadow:0 0 0 0 transparent}}
-
 .toggle{
   display:inline-flex;align-items:center;gap:8px;
   font-family:var(--font-mono);font-size:.68rem;letter-spacing:.12em;text-transform:uppercase;
@@ -102,7 +101,6 @@ html[data-theme="light"] .bg .aura{mix-blend-mode:multiply;opacity:.45}
 .toggle .ti-sun{display:none}
 html[data-theme="light"] .toggle .ti-sun{display:block}
 html[data-theme="light"] .toggle .ti-moon{display:none}
-
 .foot{
   display:flex;align-items:center;justify-content:space-between;gap:12px;
   font-family:var(--font-mono);font-size:.65rem;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-faint);
@@ -123,16 +121,12 @@ html[data-theme="light"] .toggle .ti-moon{display:none}
 }
 .orn .badge{
   width:48px;height:48px;border-radius:14px;display:grid;place-items:center;
-  background:var(--badge-bg, #111);border:1.5px solid var(--badge-ring);
-  box-shadow:var(--badge-shadow),0 0 0 1px color-mix(in oklab, var(--brand,#fff) 35%, transparent),
-    0 0 22px -6px color-mix(in oklab, var(--brand,#fff) 55%, transparent);
-  transition:transform .18s cubic-bezier(.2,.7,.3,1), box-shadow .25s;overflow:hidden;
+  background:var(--badge-bg,#111);border:1.5px solid var(--badge-ring);
+  box-shadow:var(--badge-shadow),0 0 0 1px color-mix(in oklab,var(--brand,#fff) 35%,transparent),
+    0 0 22px -6px color-mix(in oklab,var(--brand,#fff) 55%,transparent);
+  transition:transform .18s cubic-bezier(.2,.7,.3,1);overflow:hidden;
 }
-.orn:hover .badge{
-  transform:scale(1.1);
-  box-shadow:0 16px 36px -10px rgba(0,0,0,.55),0 0 0 2px color-mix(in oklab, var(--brand,#fff) 60%, transparent),
-    0 0 32px -4px color-mix(in oklab, var(--brand,#fff) 70%, transparent);
-}
+.orn:hover .badge{transform:scale(1.1)}
 .orn:focus-visible .badge{outline:2px solid var(--accent);outline-offset:3px}
 .orn .badge img{width:70%;height:70%;object-fit:contain;display:block}
 .orn .label{
@@ -188,9 +182,10 @@ html[data-theme="light"] .toggle .ti-moon{display:none}
   "use strict";
 
   /* ============================================================
-     Living sakura via 2D Space Colonization
-     (Runions / algorithmic botany) — rebuild from scratch.
-     Structure is grown once; wind/petals animate cheaply.
+     Dense cartoon / watercolor sakura
+     Structure = thick trunk + few primary arms.
+     Canopy = solid soft pink masses (not stick + confetti).
+     Refs: vecteezy mass canopy · pinterest cloud foliage.
      ============================================================ */
 
   var root = document.documentElement;
@@ -209,7 +204,7 @@ html[data-theme="light"] .toggle .ti-moon{display:none}
     var next = root.getAttribute("data-theme") === "dark" ? "light" : "dark";
     applyTheme(next);
     try{ localStorage.setItem(KEY, next); }catch(e){}
-    buildSprites(next === "light");
+    buildCanopySprite(next === "light");
   });
 
   var TOOLS = [
@@ -229,23 +224,21 @@ html[data-theme="light"] .toggle .ti-moon{display:none}
   var ctx = canvas.getContext("2d", { alpha: true, desynchronized: true });
   var W = 0, H = 0, DPR = 1;
   var t0 = performance.now();
-  var mouse = { x: 0.5, y: 0.45, tx: 0.5, ty: 0.45 };
-  var wind = { v: 0.08, target: 0.08, t: 0 };
-  var nodes = [];      // colonization skeleton
-  var segs = [];       // drawable edges parent→child
-  var tips = [];       // leaf nodes
-  var blooms = [];
+  var mouse = { x: 0.5, y: 0.4, tx: 0.5, ty: 0.4 };
+  var wind = { v: 0.06, target: 0.06, t: 0 };
+  var limbs = [];      // thick wood polylines
+  var clouds = [];     // canopy masses
   var hangPts = [];
   var ornaments = [];
   var petals = [];
-  var bloomSprites = [];
+  var canopySprite = null; // pre-baked soft pink cloud
   var petalSprite = null;
-  var bark = null;
   var baseX = 0, baseY = 0;
+  var trunkW = 28;
   var running = false, raf = null;
   var seed = 20260731;
-  var MAX_PETALS = 36;
-  var MOUSE_R = 140;
+  var MAX_PETALS = 45;
+  var MOUSE_R = 160;
 
   function rand(){
     seed |= 0; seed = seed + 0x6D2B79F5 | 0;
@@ -255,271 +248,272 @@ html[data-theme="light"] .toggle .ti-moon{display:none}
   }
   function rrange(a,b){ return a + rand() * (b - a); }
   function isLight(){ return root.getAttribute("data-theme") === "light"; }
+  function lerp(a,b,t){ return a + (b-a)*t; }
 
-  /* ---------- Space colonization (2D) ----------
-     Attractors cloud = sakura crown (wide ellipsoid).
-     Nodes grow toward nearest attractors; kill radius
-     removes them → natural, non-fractal silhouette.
-     Ref: Runions et al. "Modeling Trees with a Space
-     Colonization Algorithm" (algorithmicbotany.org).
-  */
+  /* ---- Solid cartoon foliage lobe (opaque core, soft rim only) ---- */
+  function buildCanopySprite(light){
+    var size = 256;
+    var c = document.createElement("canvas");
+    c.width = size; c.height = size;
+    var g = c.getContext("2d");
+    var cx = size / 2, cy = size / 2;
+
+    var pinkDeep = light ? "#e86a9a" : "#d45488";
+    var pinkMid  = light ? "#f48ab4" : "#e878a8";
+    var pinkLite = light ? "#ffb6d0" : "#f5a0c0";
+    var pinkHi   = light ? "#ffd6e6" : "#ffc0d8";
+
+    // Scalloped solid silhouette (cartoon cloud) — no transparent holes
+    g.fillStyle = pinkMid;
+    g.beginPath();
+    var lobes = 8;
+    for(var i = 0; i < lobes; i++){
+      var ang = (i / lobes) * Math.PI * 2 - Math.PI / 2;
+      var R = size * 0.30;
+      var r = size * 0.175;
+      var lx = cx + Math.cos(ang) * R;
+      var ly = cy + Math.sin(ang) * R * 0.92;
+      if(i === 0) g.moveTo(lx + r, ly);
+      g.arc(lx, ly, r, 0, Math.PI * 2);
+    }
+    g.arc(cx, cy, size * 0.28, 0, Math.PI * 2);
+    g.fill("evenodd"); // may cut holes — better use source-over fills instead
+    // Fill properly: paint center + lobes solid
+    g.globalCompositeOperation = "source-over";
+    g.fillStyle = pinkMid;
+    g.beginPath(); g.arc(cx, cy, size * 0.30, 0, Math.PI * 2); g.fill();
+    for(var j = 0; j < lobes; j++){
+      var a2 = (j / lobes) * Math.PI * 2 - Math.PI / 2 + 0.1;
+      var R2 = size * 0.28;
+      var r2 = size * 0.17;
+      g.beginPath();
+      g.arc(cx + Math.cos(a2) * R2, cy + Math.sin(a2) * R2 * 0.92, r2, 0, Math.PI * 2);
+      g.fill();
+    }
+
+    // Depth: darker lower-right, lighter upper-left (solid shading, not bokeh)
+    var shade = g.createLinearGradient(cx - size*0.2, cy - size*0.25, cx + size*0.25, cy + size*0.3);
+    shade.addColorStop(0, pinkHi);
+    shade.addColorStop(0.45, "rgba(0,0,0,0)");
+    shade.addColorStop(1, pinkDeep);
+    g.globalAlpha = 0.45;
+    g.fillStyle = shade;
+    g.beginPath(); g.arc(cx, cy, size * 0.42, 0, Math.PI * 2); g.fill();
+    g.globalAlpha = 1;
+
+    // Soft only at outer rim (single feather ring)
+    var rim = g.createRadialGradient(cx, cy, size * 0.34, cx, cy, size * 0.48);
+    rim.addColorStop(0, "rgba(0,0,0,0)");
+    rim.addColorStop(0.55, light ? "rgba(244,138,180,0.25)" : "rgba(212,84,136,0.22)");
+    rim.addColorStop(1, "rgba(200,70,120,0)");
+    g.fillStyle = rim;
+    g.beginPath(); g.arc(cx, cy, size * 0.48, 0, Math.PI * 2); g.fill();
+
+    // clip residual corners to circle-ish by destination-in soft mask
+    // (keeps lobe soft without bubble rings)
+
+    canopySprite = c;
+
+    petalSprite = document.createElement("canvas");
+    petalSprite.width = 28; petalSprite.height = 28;
+    var p = petalSprite.getContext("2d");
+    p.translate(14, 14);
+    p.fillStyle = light ? "rgba(240,140,175,0.92)" : "rgba(255,160,195,0.9)";
+    p.beginPath();
+    p.moveTo(0, -9);
+    p.bezierCurveTo(6, -5, 5, 5, 0, 9);
+    p.bezierCurveTo(-5, 5, -6, -5, 0, -9);
+    p.fill();
+  }
+
+  /* ---- Hand-authored thick skeleton (cartoon sakura) ---- */
   function buildTree(){
-    nodes = []; segs = []; tips = []; blooms = []; hangPts = [];
+    limbs = []; clouds = []; hangPts = [];
     seed = 20260731;
 
     var mobile = W < 720;
     baseX = W * 0.52;
-    baseY = H * 0.94;
+    baseY = H * 0.93;
+    var S = Math.min(W, H); // scale unit
+    trunkW = S * (mobile ? 0.038 : 0.042);
 
-    // Crown envelope — wide, low (classic flowering cherry)
-    var crownCX = baseX;
-    var crownCY = H * (mobile ? 0.40 : 0.36);
-    var crownRX = Math.min(W, H) * (mobile ? 0.42 : 0.46);
-    var crownRY = Math.min(W, H) * (mobile ? 0.28 : 0.32);
+    // Trunk taller so arms read under the canopy (cartoon sakura pose)
+    var trunkTopY = baseY - S * (mobile ? 0.34 : 0.38);
+    var trunk = {
+      pts: [
+        { x: baseX, y: baseY },
+        { x: baseX + S * 0.018, y: baseY - S * 0.14 },
+        { x: baseX - S * 0.01, y: baseY - S * 0.26 },
+        { x: baseX + S * 0.006, y: trunkTopY }
+      ],
+      width: trunkW,
+      depth: 0,
+      phase: 0.1
+    };
+    limbs.push(trunk);
 
-    var nAttract = mobile ? 520 : 900;
-    var attractors = [];
-    for(var i = 0; i < nAttract; i++){
-      // rejection sample in ellipse + denser rim (flowers live outside)
-      var ang = rand() * Math.PI * 2;
-      var rad = Math.sqrt(rand()); // uniform disk, then bias to rim
-      if(rand() < 0.45) rad = 0.55 + rad * 0.45; // outer bias
-      var ax = crownCX + Math.cos(ang) * rad * crownRX;
-      var ay = crownCY + Math.sin(ang) * rad * crownRY;
-      // keep above a little above ground
-      if(ay > baseY - H * 0.12) continue;
-      attractors.push({ x: ax, y: ay, alive: true });
+    // Primary arms — thick, visible under pink mass (like ref cartoons)
+    var arms = [
+      { ang: -2.65, len: 0.30, w: 0.75, bend: -0.4,  clouds: 2 },
+      { ang: -2.25, len: 0.34, w: 0.82, bend: -0.25, clouds: 3 },
+      { ang: -1.85, len: 0.30, w: 0.88, bend: -0.08, clouds: 2 },
+      { ang: -1.50, len: 0.32, w: 0.92, bend: 0.05,  clouds: 3 },
+      { ang: -1.15, len: 0.34, w: 0.9,  bend: 0.08,  clouds: 3 },
+      { ang: -0.80, len: 0.30, w: 0.88, bend: 0.12,  clouds: 2 },
+      { ang: -0.40, len: 0.33, w: 0.8,  bend: 0.28,  clouds: 3 },
+      { ang:  0.0,  len: 0.30, w: 0.72, bend: 0.4,   clouds: 2 }
+    ];
+    if(mobile){
+      arms = [arms[1], arms[2], arms[3], arms[4], arms[5], arms[6]];
     }
-    // a few low weepers on the sides
-    for(var w = 0; w < (mobile ? 40 : 70); w++){
-      var side = rand() < 0.5 ? -1 : 1;
-      attractors.push({
-        x: baseX + side * rrange(crownRX * 0.55, crownRX * 1.05),
-        y: baseY - rrange(H * 0.18, H * 0.42),
-        alive: true
-      });
-    }
 
-    // Seed trunk: vertical chain from ground into crown
-    var trunkSteps = mobile ? 7 : 9;
-    var trunkLen = (baseY - (crownCY + crownRY * 0.35)) / trunkSteps;
-    var prev = null;
-    for(var t = 0; t <= trunkSteps; t++){
-      var node = {
-        x: baseX + (rand() - 0.5) * 2,
-        y: baseY - t * trunkLen,
-        parent: prev,
-        children: [],
-        depth: t,
-        phase: rand() * Math.PI * 2,
-        flex: 0.01 + t * 0.004,
-        thick: 0,
-        rx: 0, ry: 0
+    var fork = { x: baseX, y: trunkTopY };
+
+    for(var i = 0; i < arms.length; i++){
+      var a = arms[i];
+      var len = S * a.len;
+      var ang = a.ang + rrange(-0.05, 0.05);
+      var midLen = len * 0.5;
+      var midAng = ang + a.bend * 0.45;
+      var tipAng = ang + a.bend;
+      var p0 = { x: fork.x, y: fork.y };
+      var p1 = {
+        x: fork.x + Math.cos(midAng) * midLen + rrange(-S*0.008, S*0.008),
+        y: fork.y + Math.sin(midAng) * midLen + rrange(-S*0.008, S*0.008)
       };
-      if(prev) prev.children.push(node);
-      nodes.push(node);
-      prev = node;
-    }
+      var p2 = {
+        x: fork.x + Math.cos(tipAng) * len,
+        y: fork.y + Math.sin(tipAng) * len
+      };
 
-    // Colonization params (scaled to viewport)
-    var stepLen = Math.min(W, H) * (mobile ? 0.011 : 0.010);
-    var influence = Math.min(W, H) * (mobile ? 0.085 : 0.08);
-    var kill = Math.min(W, H) * (mobile ? 0.024 : 0.022);
-    var influence2 = influence * influence;
-    var kill2 = kill * kill;
-    var maxNodes = mobile ? 1100 : 2000;
-    var maxIter = mobile ? 110 : 160;
+      var limb = {
+        pts: [p0, p1, p2],
+        width: trunkW * a.w,
+        depth: 1,
+        phase: rrange(0, Math.PI * 2),
+        tipX: p2.x, tipY: p2.y,
+        midX: p1.x, midY: p1.y
+      };
+      limbs.push(limb);
 
-    for(var iter = 0; iter < maxIter && nodes.length < maxNodes; iter++){
-      // nearest node per attractor
-      var pull = new Map(); // nodeIndex → {sx, sy, n}
-      var any = false;
-      for(var a = 0; a < attractors.length; a++){
-        var at = attractors[a];
-        if(!at.alive) continue;
-        var best = -1, bestD = influence2;
-        for(var ni = 0; ni < nodes.length; ni++){
-          var nd = nodes[ni];
-          var dx = at.x - nd.x, dy = at.y - nd.y;
-          var d2 = dx * dx + dy * dy;
-          if(d2 < bestD){ bestD = d2; best = ni; }
-        }
-        if(best < 0) continue;
-        any = true;
-        var bx = at.x - nodes[best].x;
-        var by = at.y - nodes[best].y;
-        var bl = Math.sqrt(bx * bx + by * by) || 1;
-        var p = pull.get(best);
-        if(!p){ p = { sx: 0, sy: 0, n: 0 }; pull.set(best, p); }
-        p.sx += bx / bl;
-        p.sy += by / bl;
-        p.n++;
-      }
-      if(!any) break;
-
-      // grow
-      var grew = false;
-      pull.forEach(function(p, idx){
-        if(nodes.length >= maxNodes) return;
-        var src = nodes[idx];
-        var lx = p.sx / p.n, ly = p.sy / p.n;
-        var ll = Math.sqrt(lx * lx + ly * ly) || 1;
-        lx /= ll; ly /= ll;
-        // slight random wobble + phototropism (up)
-        lx += (rand() - 0.5) * 0.18;
-        ly += (rand() - 0.5) * 0.18 - 0.08;
-        ll = Math.sqrt(lx * lx + ly * ly) || 1;
-        lx /= ll; ly /= ll;
-
-        var child = {
-          x: src.x + lx * stepLen,
-          y: src.y + ly * stepLen,
-          parent: src,
-          children: [],
-          depth: src.depth + 1,
-          phase: rand() * Math.PI * 2,
-          flex: 0.012 + Math.min(0.04, src.depth * 0.002),
-          thick: 0,
-          rx: 0, ry: 0
-        };
-        src.children.push(child);
-        nodes.push(child);
-        grew = true;
+      // one thick secondary per arm (visible structure)
+      var side = (i % 2 === 0) ? -1 : 1;
+      var sang = tipAng + side * rrange(0.45, 0.75);
+      var slen = len * rrange(0.32, 0.45);
+      var sp0 = { x: lerp(p1.x, p2.x, 0.4), y: lerp(p1.y, p2.y, 0.4) };
+      var sp1 = {
+        x: sp0.x + Math.cos(sang) * slen * 0.5,
+        y: sp0.y + Math.sin(sang) * slen * 0.5
+      };
+      var sp2 = {
+        x: sp0.x + Math.cos(sang + side * 0.12) * slen,
+        y: sp0.y + Math.sin(sang + side * 0.12) * slen
+      };
+      limbs.push({
+        pts: [sp0, sp1, sp2],
+        width: trunkW * a.w * 0.5,
+        depth: 2,
+        phase: rrange(0, Math.PI * 2),
+        tipX: sp2.x, tipY: sp2.y,
+        midX: sp1.x, midY: sp1.y
       });
-      if(!grew) break;
 
-      // kill attractors near any node
-      for(var k = 0; k < attractors.length; k++){
-        var att = attractors[k];
-        if(!att.alive) continue;
-        for(var nj = 0; nj < nodes.length; nj++){
-          var dx2 = att.x - nodes[nj].x;
-          var dy2 = att.y - nodes[nj].y;
-          if(dx2 * dx2 + dy2 * dy2 < kill2){ att.alive = false; break; }
-        }
+      // outer tip lobe + one secondary (solid, large)
+      addCloud(
+        lerp(p1.x, p2.x, 0.85) + rrange(-S*0.02, S*0.02),
+        lerp(p1.y, p2.y, 0.85) + rrange(-S*0.02, S*0.01),
+        S * rrange(0.18, 0.26),
+        rrange(0, Math.PI * 2)
+      );
+      if(a.clouds > 2){
+        addCloud(
+          lerp(p1.x, p2.x, 0.55),
+          lerp(p1.y, p2.y, 0.55) - S * 0.02,
+          S * rrange(0.14, 0.2),
+          rrange(0, Math.PI * 2)
+        );
       }
+      addCloud(sp2.x, sp2.y, S * rrange(0.14, 0.2), rrange(0, Math.PI * 2));
+
+      // hang under arms (tools sit below pink mass)
+      hangPts.push({ x: p1.x, y: p1.y + S * 0.02, score: Math.abs(p1.x - baseX) + p1.y * 0.4 });
+      hangPts.push({ x: lerp(p1.x, p2.x, 0.55), y: lerp(p1.y, p2.y, 0.55) + S * 0.03, score: Math.abs(p2.x - baseX) * 0.9 + p2.y * 0.35 });
     }
 
-    // thickness from leaf mass (pipe model): leaves=1, parent = sum children
-    function mass(n){
-      if(!n.children.length){ n._m = 1; return 1; }
-      var s = 0;
-      for(var c = 0; c < n.children.length; c++) s += mass(n.children[c]);
-      n._m = s;
-      return s;
+    // Upper crown — fewer larger solid lobes (reads as one pink mass)
+    var crownCX = baseX;
+    var crownCY = trunkTopY - S * 0.12;
+    var nFill = mobile ? 6 : 9;
+    for(var f = 0; f < nFill; f++){
+      var fa = (f / nFill) * Math.PI * 2 + rrange(-0.2, 0.2);
+      var fd = S * rrange(0.06, 0.18);
+      addCloud(
+        crownCX + Math.cos(fa) * fd * 1.15,
+        crownCY + Math.sin(fa) * fd * 0.7 - S * 0.02,
+        S * rrange(0.18, 0.28),
+        rrange(0, Math.PI * 2)
+      );
     }
-    mass(nodes[0]);
-    var maxM = nodes[0]._m || 1;
-    for(var ti = 0; ti < nodes.length; ti++){
-      var thN = nodes[ti];
-      // area ~ mass → radius ~ sqrt
-      thN.thick = 1.2 + Math.sqrt(thN._m / maxM) * Math.min(W, H) * 0.028;
-      thN.rx = thN.x; thN.ry = thN.y; // rest pose
-      if(!thN.children.length) tips.push(thN);
+    var nRim = mobile ? 8 : 11;
+    for(var r = 0; r < nRim; r++){
+      var ra = -Math.PI * 0.05 - (r / (nRim - 1)) * Math.PI * 0.9;
+      var rx = crownCX + Math.cos(ra) * S * 0.34;
+      var ry = crownCY + Math.sin(ra) * S * 0.25;
+      addCloud(rx, ry, S * rrange(0.16, 0.24), rrange(0, Math.PI * 2));
     }
 
-    // drawable segments (parent → child), thick first
-    for(var si = 1; si < nodes.length; si++){
-      var ch = nodes[si];
-      if(!ch.parent) continue;
-      segs.push({
-        a: ch.parent,
-        b: ch,
-        depth: ch.depth,
-        lw: Math.max(0.8, (ch.parent.thick + ch.thick) * 0.5)
-      });
-    }
-    segs.sort(function(u, v){ return u.depth - v.depth; });
-
-    placeBlooms();
-    pickHangPoints();
     assignOrnaments();
   }
 
-  function placeBlooms(){
-    blooms = [];
-    // every tip: cluster
-    for(var i = 0; i < tips.length; i++){
-      var tip = tips[i];
-      var n = 5 + (rand() * 6 | 0);
-      for(var j = 0; j < n; j++){
-        blooms.push({
-          node: tip,
-          along: 0.5 + rand() * 0.48,
-          ox: rrange(-14, 14),
-          oy: rrange(-12, 11),
-          r: rrange(3.5, 7.2),
-          sprite: (rand() * 8) | 0,
-          tw: rand() * Math.PI * 2,
-          tws: rrange(0.5, 1.3)
-        });
-      }
-    }
-    // outer mid-nodes — denser canopy fill
-    for(var k = 0; k < nodes.length; k++){
-      var nd = nodes[k];
-      if(nd.depth < 5) continue;
-      if(rand() > (nd.children.length ? 0.5 : 0.15)) continue;
-      var m = 2 + (rand() * 4 | 0);
-      for(var p = 0; p < m; p++){
-        blooms.push({
-          node: nd,
-          along: 0.25 + rand() * 0.7,
-          ox: rrange(-16, 16),
-          oy: rrange(-14, 12),
-          r: rrange(3.2, 6.8),
-          sprite: (rand() * 8) | 0,
-          tw: rand() * Math.PI * 2,
-          tws: rrange(0.5, 1.3)
-        });
-      }
-    }
-  }
-
-  function pickHangPoints(){
-    hangPts = [];
-    for(var i = 0; i < nodes.length; i++){
-      var n = nodes[i];
-      if(n.depth < 3) continue;
-      if(n.ry < H * 0.15 || n.ry > H * 0.78) continue;
-      var outward = Math.abs(n.rx - baseX) / Math.max(1, W * 0.45);
-      var score = outward * 0.55 + (n.ry / H) * 0.35 + rand() * 0.3;
-      if(!n.children.length) score += 0.25;
-      hangPts.push({ node: n, score: score });
-    }
-    hangPts.sort(function(a, b){ return b.score - a.score; });
+  function addCloud(x, y, r, phase){
+    clouds.push({
+      x: x, y: y,
+      rx: x, ry: y,   // rest
+      r: r,
+      phase: phase,
+      flex: 0.012 + rand() * 0.01,
+      // slight color/size variance when drawing
+      scale: rrange(0.92, 1.08),
+      rot: rrange(0, Math.PI * 2)
+    });
   }
 
   function assignOrnaments(){
     var host = document.getElementById("ornaments");
     host.innerHTML = "";
     ornaments = [];
-    var chosen = [];
-    var minD = Math.max(58, W * 0.055);
+    hangPts.sort(function(a,b){ return b.score - a.score; });
 
+    var chosen = [];
+    var minD = Math.max(64, W * 0.06);
     for(var i = 0; i < hangPts.length && chosen.length < TOOLS.length; i++){
       var hp = hangPts[i];
+      // prefer lower points (under canopy)
+      if(hp.y < H * 0.22) continue;
       var ok = true;
       for(var j = 0; j < chosen.length; j++){
-        var dx = hp.node.rx - chosen[j].node.rx;
-        var dy = hp.node.ry - chosen[j].node.ry;
-        if(dx * dx + dy * dy < minD * minD){ ok = false; break; }
+        var dx = hp.x - chosen[j].x, dy = hp.y - chosen[j].y;
+        if(dx*dx + dy*dy < minD*minD){ ok = false; break; }
       }
       if(ok) chosen.push(hp);
     }
-    // fallback: any mid nodes if still short
+    // pad with cloud positions if needed
     if(chosen.length < TOOLS.length){
-      for(var f = 0; f < nodes.length && chosen.length < TOOLS.length; f++){
-        var nn = nodes[f];
-        if(nn.depth < 4 || nn.ry > H * 0.8) continue;
-        var used = false;
-        for(var c = 0; c < chosen.length; c++) if(chosen[c].node === nn){ used = true; break; }
-        if(!used) chosen.push({ node: nn, score: 0 });
+      for(var c = 0; c < clouds.length && chosen.length < TOOLS.length; c++){
+        var cl = clouds[c];
+        if(cl.ry < H * 0.25 || cl.ry > H * 0.7) continue;
+        var ok2 = true;
+        for(var k = 0; k < chosen.length; k++){
+          var dx2 = cl.rx - chosen[k].x, dy2 = cl.ry - chosen[k].y;
+          if(dx2*dx2 + dy2*dy2 < minD*minD){ ok2 = false; break; }
+        }
+        if(ok2) chosen.push({ x: cl.rx, y: cl.ry + cl.r * 0.35, limb: null });
       }
     }
 
     for(var t = 0; t < TOOLS.length && t < chosen.length; t++){
       var tool = TOOLS[t];
+      var pt = chosen[t];
       var a = document.createElement("a");
       a.className = "orn";
       a.href = tool.href;
@@ -535,200 +529,173 @@ html[data-theme="light"] .toggle .ti-moon{display:none}
       host.appendChild(a);
       ornaments.push({
         el: a,
-        node: chosen[t].node,
+        x: pt.x, y: pt.y,
+        rx: pt.x, ry: pt.y,
         swing: 0, swingV: 0,
-        drop: 26 + (t % 4) * 7
+        drop: 24 + (t % 4) * 8,
+        phase: t * 0.7
       });
     }
   }
 
-  /* ---------- sprites ---------- */
-  function buildSprites(light){
-    bloomSprites = [];
-    var size = 64;
-    for(var s = 0; s < 8; s++){
-      var c = document.createElement("canvas");
-      c.width = size; c.height = size;
-      var g = c.getContext("2d");
-      var cx = size / 2, cy = size / 2, R = 17 + (s % 3) * 2;
-      var pinkA = light ? "255,175,200" : "255,155,195";
-      var pinkB = light ? "255,140,175" : "255,115,165";
-      var pinkC = light ? "255,220,232" : "255,195,218";
-      var rot = s * 0.45;
-
-      var haze = g.createRadialGradient(cx, cy, 0, cx, cy, R * 1.55);
-      haze.addColorStop(0, "rgba(" + pinkA + ",0.22)");
-      haze.addColorStop(1, "rgba(" + pinkB + ",0)");
-      g.fillStyle = haze;
-      g.beginPath(); g.arc(cx, cy, R * 1.55, 0, Math.PI * 2); g.fill();
-
-      for(var i = 0; i < 5; i++){
-        var ang = (i / 5) * Math.PI * 2 + rot;
-        var px = cx + Math.cos(ang) * R * 0.38;
-        var py = cy + Math.sin(ang) * R * 0.34;
-        var pr = R * 0.48;
-        var pg = g.createRadialGradient(px, py, 0, px, py, pr);
-        pg.addColorStop(0, "rgba(" + pinkC + ",0.75)");
-        pg.addColorStop(0.6, "rgba(" + pinkA + ",0.38)");
-        pg.addColorStop(1, "rgba(" + pinkB + ",0)");
-        g.fillStyle = pg;
-        g.beginPath(); g.arc(px, py, pr, 0, Math.PI * 2); g.fill();
-      }
-      g.fillStyle = light ? "rgba(255,236,245,0.6)" : "rgba(255,222,236,0.55)";
-      g.beginPath(); g.arc(cx, cy, R * 0.16, 0, Math.PI * 2); g.fill();
-      if(s > 3){
-        g.fillStyle = light ? "rgba(255,205,90,0.55)" : "rgba(255,190,80,0.45)";
-        g.beginPath(); g.arc(cx, cy, 1.1, 0, Math.PI * 2); g.fill();
-      }
-      bloomSprites.push(c);
-    }
-
-    petalSprite = document.createElement("canvas");
-    petalSprite.width = 24; petalSprite.height = 24;
-    var p = petalSprite.getContext("2d");
-    p.translate(12, 12);
-    p.fillStyle = light ? "rgba(233,145,180,0.92)" : "rgba(255,170,200,0.92)";
-    p.beginPath();
-    p.moveTo(0, -8);
-    p.bezierCurveTo(5, -4, 4, 5, 0, 8);
-    p.bezierCurveTo(-4, 5, -5, -4, 0, -8);
-    p.fill();
-
-    bark = light
-      ? ["#4a2c22", "#5c382c", "#6e4638", "rgba(120,78,62,0.85)"]
-      : ["#2a1a18", "#3a2622", "#4a322c", "rgba(90,62,56,0.88)"];
-  }
-
-  /* ---------- wind: FK-ish from root using rest pose + local tip sway ---------- */
+  /* ---- Animate: gentle cloud sway, almost still wood ---- */
   function animate(time){
-    var breeze = Math.sin(time * 0.65) * 0.35 + Math.sin(time * 0.23) * 0.18 + wind.v * 0.5;
+    var breeze = Math.sin(time * 0.55) * 0.4 + Math.sin(time * 0.21) * 0.2 + wind.v * 0.6;
     var curX = mouse.x * W;
     var curY = mouse.y * H;
     var r2 = MOUSE_R * MOUSE_R;
 
-    // root fixed
-    var rootN = nodes[0];
-    if(!rootN) return;
-    rootN.x = rootN.rx;
-    rootN.y = rootN.ry;
-
-    // process in creation order (parents before children)
-    for(var i = 1; i < nodes.length; i++){
-      var n = nodes[i];
-      var par = n.parent;
-      // rest offset parent→child
-      var ox = n.rx - par.rx;
-      var oy = n.ry - par.ry;
-      var len = Math.sqrt(ox * ox + oy * oy) || 1;
-      var ang = Math.atan2(oy, ox);
-
-      // ambient sway grows with depth; trunk almost still
-      var depthAmp = n.depth < 3 ? 0.05 : (n.depth < 6 ? 0.25 : 1);
-      var sway = (breeze + Math.sin(time * 0.85 + n.phase) * 0.35) * n.flex * depthAmp * 0.9;
-
-      // mouse: only tips near cursor
-      if(!n.children.length && n.depth >= 5){
-        var dx = n.rx - curX, dy = n.ry - curY;
-        var d2 = dx * dx + dy * dy;
-        if(d2 < r2){
-          var fall = 1 - d2 / r2;
-          fall *= fall;
-          sway += fall * 0.035 * (dx > 0 ? 0.4 : -0.4);
-          sway += fall * Math.sin(time * 2 + n.phase) * 0.02;
-        }
+    for(var i = 0; i < clouds.length; i++){
+      var cl = clouds[i];
+      var sway = (breeze + Math.sin(time * 0.9 + cl.phase) * 0.35) * cl.flex * 40;
+      // mouse local
+      var dx = cl.rx - curX, dy = cl.ry - curY;
+      var d2 = dx*dx + dy*dy;
+      var mx = 0, my = 0;
+      if(d2 < r2){
+        var fall = 1 - d2 / r2;
+        fall *= fall;
+        mx = fall * 6 * (dx > 0 ? 0.3 : -0.3);
+        my = fall * Math.sin(time * 2 + cl.phase) * 3;
       }
-
-      ang += sway;
-      n.x = par.x + Math.cos(ang) * len;
-      n.y = par.y + Math.sin(ang) * len;
+      cl.x = cl.rx + sway + mx;
+      cl.y = cl.ry + Math.sin(time * 0.7 + cl.phase) * cl.flex * 12 + my;
     }
+
+    // ornaments follow rest hang + swing
+    for(var o = 0; o < ornaments.length; o++){
+      var orn = ornaments[o];
+      // slight shared breeze
+      orn.x = orn.rx + Math.sin(time * 0.6 + orn.phase) * 2;
+      orn.y = orn.ry + Math.sin(time * 0.5 + orn.phase) * 1.2;
+    }
+  }
+
+  /* ---- Draw ---- */
+  function drawLimb(limb, time){
+    var pts = limb.pts;
+    if(pts.length < 2) return;
+    // subtle breathe on tips only
+    var breathe = limb.depth > 0 ? Math.sin(time * 0.6 + limb.phase) * 1.5 : 0;
+
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+
+    // trunk/arms: gradient stroke via multiple passes
+    var light = isLight();
+    var baseCol = light ? "#5a3428" : "#3a241c";
+    var hiCol = light ? "rgba(140,90,60,0.35)" : "rgba(100,70,55,0.3)";
+
+    ctx.strokeStyle = baseCol;
+    ctx.lineWidth = limb.width;
+    ctx.beginPath();
+    ctx.moveTo(pts[0].x, pts[0].y);
+    if(pts.length === 2){
+      ctx.lineTo(pts[1].x + breathe, pts[1].y);
+    } else {
+      // smooth through mid
+      for(var i = 1; i < pts.length - 1; i++){
+        var xc = (pts[i].x + pts[i+1].x) / 2;
+        var yc = (pts[i].y + pts[i+1].y) / 2;
+        ctx.quadraticCurveTo(pts[i].x, pts[i].y, xc, yc);
+      }
+      var last = pts[pts.length - 1];
+      ctx.quadraticCurveTo(last.x, last.y, last.x + breathe * 0.3, last.y);
+    }
+    ctx.stroke();
+
+    // highlight edge for thickness read
+    if(limb.depth < 2){
+      ctx.strokeStyle = hiCol;
+      ctx.lineWidth = Math.max(1.5, limb.width * 0.22);
+      ctx.beginPath();
+      ctx.moveTo(pts[0].x - limb.width * 0.12, pts[0].y);
+      if(pts.length >= 3){
+        ctx.quadraticCurveTo(
+          pts[1].x - limb.width * 0.1, pts[1].y,
+          pts[2].x - limb.width * 0.06, pts[2].y
+        );
+      } else {
+        ctx.lineTo(pts[1].x, pts[1].y);
+      }
+      ctx.stroke();
+    }
+  }
+
+  function drawTrunkBase(){
+    // flared root at ground
+    var light = isLight();
+    var w = trunkW * 1.55;
+    var g = ctx.createLinearGradient(baseX, baseY - trunkW * 2, baseX, baseY + 4);
+    g.addColorStop(0, light ? "#5a3428" : "#3a241c");
+    g.addColorStop(1, light ? "#4a2a20" : "#2a1814");
+    ctx.fillStyle = g;
+    ctx.beginPath();
+    ctx.moveTo(baseX - w * 0.55, baseY - trunkW * 1.8);
+    ctx.quadraticCurveTo(baseX - w * 1.1, baseY + 2, baseX - w * 0.3, baseY + 3);
+    ctx.lineTo(baseX + w * 0.3, baseY + 3);
+    ctx.quadraticCurveTo(baseX + w * 1.1, baseY + 2, baseX + w * 0.55, baseY - trunkW * 1.8);
+    ctx.closePath();
+    ctx.fill();
   }
 
   function draw(time){
     ctx.clearRect(0, 0, W, H);
 
-    // soft ground shadow
-    ctx.fillStyle = isLight() ? "rgba(40,30,50,0.1)" : "rgba(0,0,0,0.32)";
+    // ground shadow
+    ctx.fillStyle = isLight() ? "rgba(40,30,50,0.12)" : "rgba(0,0,0,0.4)";
     ctx.beginPath();
-    ctx.ellipse(baseX, baseY - 2, Math.min(W, H) * 0.15, Math.min(W, H) * 0.028, 0, 0, Math.PI * 2);
+    ctx.ellipse(baseX, baseY + 2, trunkW * 3.2, trunkW * 0.55, 0, 0, Math.PI * 2);
     ctx.fill();
 
-    // soft pink canopy glow
-    var g = ctx.createRadialGradient(baseX, H * 0.36, 10, baseX, H * 0.36, Math.min(W, H) * 0.4);
-    if(isLight()){
-      g.addColorStop(0, "rgba(255,175,200,0.10)");
-      g.addColorStop(1, "rgba(255,200,220,0)");
-    } else {
-      g.addColorStop(0, "rgba(255,100,160,0.08)");
-      g.addColorStop(1, "rgba(0,0,0,0)");
-    }
-    ctx.fillStyle = g;
-    ctx.fillRect(0, 0, W, H);
-
-    // branches
-    ctx.lineCap = "round";
-    ctx.lineJoin = "round";
-    var last = "";
-    for(var i = 0; i < segs.length; i++){
-      var s = segs[i];
-      var d = s.depth;
-      var col = d < 3 ? bark[0] : d < 6 ? bark[1] : d < 10 ? bark[2] : bark[3];
-      if(col !== last){ ctx.strokeStyle = col; last = col; }
-      ctx.lineWidth = s.lw * (1 - Math.min(0.35, d * 0.015));
-      ctx.beginPath();
-      ctx.moveTo(s.a.x, s.a.y);
-      // organic midpoint for thicker limbs
-      if(d < 8){
-        var mx = (s.a.x + s.b.x) * 0.5 + Math.sin(time * 0.5 + s.b.phase) * 1.1;
-        var my = (s.a.y + s.b.y) * 0.5;
-        ctx.quadraticCurveTo(mx, my, s.b.x, s.b.y);
-      } else {
-        ctx.lineTo(s.b.x, s.b.y);
+    // wood first (under canopy)
+    drawTrunkBase();
+    // depth 0 then 1 then 2
+    for(var d = 0; d <= 2; d++){
+      for(var i = 0; i < limbs.length; i++){
+        if(limbs[i].depth === d) drawLimb(limbs[i], time);
       }
-      ctx.stroke();
     }
 
-    // blossoms (sprite stamps)
-    if(!bloomSprites.length) return;
-    for(var b = 0; b < blooms.length; b++){
-      var bl = blooms[b];
-      var nd = bl.node;
-      var par = nd.parent;
-      var bx, by;
-      if(par){
-        bx = par.x + (nd.x - par.x) * bl.along + bl.ox;
-        by = par.y + (nd.y - par.y) * bl.along + bl.oy;
-      } else {
-        bx = nd.x + bl.ox; by = nd.y + bl.oy;
+    // canopy — solid cartoon lobes
+    if(canopySprite){
+      for(var c = 0; c < clouds.length; c++){
+        var cl = clouds[c];
+        var sz = cl.r * 2.05 * cl.scale;
+        sz *= 1 + Math.sin(time * 0.6 + cl.phase) * 0.01;
+        ctx.save();
+        ctx.translate(cl.x, cl.y);
+        ctx.rotate(cl.rot + Math.sin(time * 0.25 + cl.phase) * 0.02);
+        ctx.globalAlpha = 0.95;
+        ctx.drawImage(canopySprite, -sz * 0.5, -sz * 0.5, sz, sz);
+        ctx.restore();
       }
-      var r = bl.r * (0.98 + Math.sin(time * bl.tws + bl.tw) * 0.02);
-      var sz = r * 3.2;
-      ctx.drawImage(bloomSprites[bl.sprite], bx - sz * 0.5, by - sz * 0.5, sz, sz);
+      ctx.globalAlpha = 1;
     }
   }
 
   function spawnPetal(){
-    if(petals.length >= MAX_PETALS || !blooms.length) return;
-    var bl = blooms[(Math.random() * blooms.length) | 0];
-    var nd = bl.node, par = nd.parent;
-    var x = par ? par.x + (nd.x - par.x) * bl.along : nd.x;
-    var y = par ? par.y + (nd.y - par.y) * bl.along : nd.y;
+    if(petals.length >= MAX_PETALS || !clouds.length) return;
+    var cl = clouds[(Math.random() * clouds.length) | 0];
+    // from lower rim of cloud
+    var ang = rrange(0.2, Math.PI - 0.2);
     petals.push({
-      x: x + bl.ox, y: y + bl.oy,
-      size: 3 + Math.random() * 5,
+      x: cl.x + Math.cos(ang) * cl.r * 0.55,
+      y: cl.y + Math.sin(ang) * cl.r * 0.45,
+      size: 3.5 + Math.random() * 5.5,
       rot: Math.random() * Math.PI * 2,
       vrot: (Math.random() - 0.5) * 0.06,
-      vy: 0.28 + Math.random() * 0.8,
-      vx: wind.v * 0.4 + (Math.random() - 0.35) * 0.45,
-      amp: 10 + Math.random() * 24,
+      vy: 0.3 + Math.random() * 0.85,
+      vx: wind.v * 0.35 + (Math.random() - 0.35) * 0.45,
+      amp: 10 + Math.random() * 22,
       ph: Math.random() * Math.PI * 2,
-      phs: 0.01 + Math.random() * 0.018,
+      phs: 0.01 + Math.random() * 0.016,
       a: 0
     });
   }
 
   function drawPetals(dt){
-    if(!reduce.matches && Math.random() < (0.3 + Math.abs(wind.v)) * dt * 0.05) spawnPetal();
+    if(!reduce.matches && Math.random() < (0.4 + Math.abs(wind.v)) * dt * 0.06) spawnPetal();
     if(!petalSprite) return;
     for(var i = petals.length - 1; i >= 0; i--){
       var p = petals[i];
@@ -741,9 +708,9 @@ html[data-theme="light"] .toggle .ti-moon{display:none}
       p.rot += p.vrot * dt;
       if(p.a < 0.9) p.a += 0.04 * dt;
       if(p.y > H * 0.9) p.a -= 0.04 * dt;
-      if(p.y > H + 20 || p.a <= 0 || p.x < -40 || p.x > W + 40){ petals.splice(i, 1); continue; }
+      if(p.y > H + 20 || p.a <= 0){ petals.splice(i, 1); continue; }
       var xx = p.x + Math.sin(p.ph) * p.amp;
-      var s = p.size * 2.1;
+      var s = p.size * 2.2;
       ctx.globalAlpha = p.a;
       ctx.save();
       ctx.translate(xx, p.y);
@@ -757,23 +724,22 @@ html[data-theme="light"] .toggle .ti-moon{display:none}
   function updateOrnaments(time, dt){
     for(var i = 0; i < ornaments.length; i++){
       var o = ornaments[i];
-      var n = o.node;
-      var target = wind.v * 0.05 + Math.sin(time * 1.05 + i) * 0.035;
+      var target = wind.v * 0.05 + Math.sin(time * 1.0 + o.phase) * 0.04;
       o.swingV += (target - o.swing) * 0.06 * dt;
       o.swingV *= Math.pow(0.92, dt);
       o.swing += o.swingV * dt;
       var ang = o.swing;
-      var tx = n.x + Math.sin(ang) * o.drop;
-      var ty = n.y + Math.cos(ang) * o.drop;
+      var tx = o.x + Math.sin(ang) * o.drop;
+      var ty = o.y + Math.cos(ang) * o.drop;
       o.el.style.transform =
         "translate(" + (tx|0) + "px," + (ty|0) + "px) rotate(" + (ang * 14).toFixed(2) + "deg) translate(-50%,0)";
     }
   }
 
-  function updateWind(time, dt){
+  function updateWind(dt){
     wind.t -= dt;
     if(wind.t <= 0){
-      wind.target = (Math.random() - 0.4) * 0.55;
+      wind.target = (Math.random() - 0.4) * 0.5;
       wind.t = (3 + Math.random() * 5) * 60;
     }
     wind.v += (wind.target - wind.v) * 0.012 * dt;
@@ -790,15 +756,15 @@ html[data-theme="light"] .toggle .ti-moon{display:none}
     mouse.y += (mouse.ty - mouse.y) * 0.03;
 
     if(!reduce.matches){
-      updateWind(time, dt);
+      updateWind(dt);
       animate(time);
       draw(time);
       drawPetals(dt);
       updateOrnaments(time, dt);
     } else {
-      for(var i = 0; i < nodes.length; i++){
-        nodes[i].x = nodes[i].rx;
-        nodes[i].y = nodes[i].ry;
+      for(var i = 0; i < clouds.length; i++){
+        clouds[i].x = clouds[i].rx;
+        clouds[i].y = clouds[i].ry;
       }
       draw(0);
       updateOrnaments(0, 1);
@@ -828,9 +794,9 @@ html[data-theme="light"] .toggle .ti-moon{display:none}
     canvas.style.height = H + "px";
     ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
     ctx.imageSmoothingEnabled = true;
-    ctx.imageSmoothingQuality = "low";
+    ctx.imageSmoothingQuality = "medium";
     petals = [];
-    buildSprites(isLight());
+    buildCanopySprite(isLight());
     buildTree();
   }
 
@@ -843,9 +809,9 @@ html[data-theme="light"] .toggle .ti-moon{display:none}
   }, { passive: true });
   window.addEventListener("pointerdown", function(e){
     if(e.target.closest && e.target.closest("a,button")) return;
-    wind.target = (e.clientX / W - 0.5) * 1.1;
-    wind.t = 2.2 * 60;
-    for(var i = 0; i < 5; i++) spawnPetal();
+    wind.target = (e.clientX / W - 0.5) * 0.9;
+    wind.t = 2 * 60;
+    for(var i = 0; i < 8; i++) spawnPetal();
   }, { passive: true });
   document.addEventListener("visibilitychange", function(){
     if(document.hidden) stop(); else start();
