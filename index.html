@@ -244,27 +244,27 @@ labelRenderer.domElement.style.zIndex = "2";
 document.body.appendChild(labelRenderer.domElement);
 
 const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(38, window.innerWidth / window.innerHeight, 0.1, 120);
-camera.position.set(0.8, 3.6, 16);
+const camera = new THREE.PerspectiveCamera(36, window.innerWidth / window.innerHeight, 0.1, 200);
+camera.position.set(1.0, 3.2, 18);
 
 const controls = new OrbitControls(camera, labelRenderer.domElement);
 controls.enableDamping = true;
-controls.dampingFactor = 0.06;
-controls.minDistance = 8;
-controls.maxDistance = 36;
-controls.minPolarAngle = 0.25;
+controls.dampingFactor = 0.055;
+controls.minDistance = 9;
+controls.maxDistance = 40;
+controls.minPolarAngle = 0.22;
 controls.maxPolarAngle = Math.PI * 0.49;
-controls.target.set(0, 1.5, 0);
+controls.target.set(0, 1.4, 0);
 controls.autoRotate = !reduce.matches;
 controls.autoRotateSpeed = 0.3;
 // don't auto-rotate while user interacts
 controls.addEventListener("start", () => { controls.autoRotate = false; });
 
 /* Lights */
-const hemi = new THREE.HemisphereLight(0xb8c8ff, 0x2a1a18, 0.55);
+const hemi = new THREE.HemisphereLight(0xc8d4ff, 0x3a2218, 0.7);
 scene.add(hemi);
-const sun = new THREE.DirectionalLight(0xfff0e0, 1.15);
-sun.position.set(6, 12, 4);
+const sun = new THREE.DirectionalLight(0xfff2e8, 1.25);
+sun.position.set(5, 14, 6);
 sun.castShadow = true;
 sun.shadow.mapSize.set(1024, 1024);
 sun.shadow.camera.near = 1;
@@ -275,12 +275,15 @@ sun.shadow.camera.top = 10;
 sun.shadow.camera.bottom = -2;
 sun.shadow.bias = -0.0004;
 scene.add(sun);
-const rim = new THREE.DirectionalLight(0xff9ec8, 0.45);
-rim.position.set(-5, 3, -4);
+const rim = new THREE.DirectionalLight(0xffa0c8, 0.55);
+rim.position.set(-6, 4, -5);
 scene.add(rim);
-const fill = new THREE.PointLight(0xffb0d0, 0.35, 20, 2);
-fill.position.set(0, 4, 2);
+const fill = new THREE.PointLight(0xffb8d8, 0.55, 24, 2);
+fill.position.set(0, 3.5, 3);
 scene.add(fill);
+const bounce = new THREE.PointLight(0xffc0d8, 0.25, 18, 2);
+bounce.position.set(-2, 1.5, 2);
+scene.add(bounce);
 
 /* Ground */
 const groundGeo = new THREE.CircleGeometry(9, 48);
@@ -318,167 +321,175 @@ function applySceneTheme(light){
 
 /* ---------- Materials ---------- */
 const barkMat = new THREE.MeshStandardMaterial({
-  color: 0x4a3228, roughness: 0.88, metalness: 0.05
+  color: 0x3d2a22, roughness: 0.92, metalness: 0.02
 });
 const barkDarkMat = new THREE.MeshStandardMaterial({
-  color: 0x3a241c, roughness: 0.9, metalness: 0.04
+  color: 0x2a1c16, roughness: 0.94, metalness: 0.02
+});
+const barkLiteMat = new THREE.MeshStandardMaterial({
+  color: 0x5a4034, roughness: 0.9, metalness: 0.02
 });
 
-/* ---------- Sakura flower geometry (rounded notched petals, not stars) ---------- */
-function makeSinglePetalShape(){
-  // Classic sakura petal: wide rounded body + notch at the tip
-  const s = new THREE.Shape();
-  s.moveTo(0, 0.01);
-  s.bezierCurveTo(0.055, 0.02, 0.075, 0.07, 0.055, 0.11);
-  s.bezierCurveTo(0.04, 0.13, 0.018, 0.125, 0.008, 0.112); // into notch
-  s.lineTo(0, 0.1);
-  s.lineTo(-0.008, 0.112);
-  s.bezierCurveTo(-0.018, 0.125, -0.04, 0.13, -0.055, 0.11);
-  s.bezierCurveTo(-0.075, 0.07, -0.055, 0.02, 0, 0.01);
-  return s;
-}
+/* Soft painted sakura texture (looks far better than hard star geometry) */
+function makeSakuraTexture(){
+  const size = 128;
+  const c = document.createElement("canvas");
+  c.width = size; c.height = size;
+  const g = c.getContext("2d");
+  const cx = size / 2, cy = size / 2;
 
-function makeFlowerGeo(){
-  // Merge 5 petals + tiny center disc into one BufferGeometry
-  const geos = [];
-  const petalShape = makeSinglePetalShape();
+  // transparent clear
+  g.clearRect(0, 0, size, size);
+
+  // 5 soft rounded petals with tip notch
   for(let i = 0; i < 5; i++){
-    const g = new THREE.ShapeGeometry(petalShape, 8);
-    const ang = (i / 5) * Math.PI * 2;
-    g.rotateZ(ang);
-    geos.push(g);
+    const ang = (i / 5) * Math.PI * 2 - Math.PI / 2;
+    g.save();
+    g.translate(cx, cy);
+    g.rotate(ang);
+    // petal body
+    const grad = g.createRadialGradient(0, size * 0.18, 2, 0, size * 0.16, size * 0.22);
+    grad.addColorStop(0, "rgba(255,230,240,0.98)");
+    grad.addColorStop(0.45, "rgba(255,170,200,0.92)");
+    grad.addColorStop(0.85, "rgba(240,120,165,0.55)");
+    grad.addColorStop(1, "rgba(220,90,140,0)");
+    g.fillStyle = grad;
+    g.beginPath();
+    g.moveTo(0, size * 0.02);
+    g.bezierCurveTo(size * 0.12, size * 0.06, size * 0.14, size * 0.2, size * 0.06, size * 0.28);
+    // notch
+    g.quadraticCurveTo(size * 0.02, size * 0.24, 0, size * 0.26);
+    g.quadraticCurveTo(-size * 0.02, size * 0.24, -size * 0.06, size * 0.28);
+    g.bezierCurveTo(-size * 0.14, size * 0.2, -size * 0.12, size * 0.06, 0, size * 0.02);
+    g.fill();
+    g.restore();
   }
-  // center
-  const center = new THREE.CircleGeometry(0.018, 10);
-  geos.push(center);
+  // yellow-green center
+  const cg = g.createRadialGradient(cx, cy, 0, cx, cy, size * 0.06);
+  cg.addColorStop(0, "rgba(255,230,120,0.95)");
+  cg.addColorStop(0.6, "rgba(255,190,80,0.7)");
+  cg.addColorStop(1, "rgba(255,160,60,0)");
+  g.fillStyle = cg;
+  g.beginPath();
+  g.arc(cx, cy, size * 0.055, 0, Math.PI * 2);
+  g.fill();
 
-  // manual merge (avoid BufferGeometryUtils dependency)
-  let count = 0;
-  for(const g of geos) count += g.attributes.position.count;
-  const pos = new Float32Array(count * 3);
-  const norm = new Float32Array(count * 3);
-  const uvs = new Float32Array(count * 2);
-  const idx = [];
-  let po = 0, uo = 0, vBase = 0;
-  for(const g of geos){
-    const p = g.attributes.position;
-    const n = g.attributes.normal;
-    const u = g.attributes.uv;
-    for(let i = 0; i < p.count; i++){
-      pos[po] = p.getX(i); pos[po+1] = p.getY(i); pos[po+2] = p.getZ(i);
-      if(n){ norm[po] = n.getX(i); norm[po+1] = n.getY(i); norm[po+2] = n.getZ(i); }
-      else { norm[po] = 0; norm[po+1] = 0; norm[po+2] = 1; }
-      if(u){ uvs[uo] = u.getX(i); uvs[uo+1] = u.getY(i); }
-      po += 3; uo += 2;
-    }
-    if(g.index){
-      for(let i = 0; i < g.index.count; i++) idx.push(g.index.getX(i) + vBase);
-    } else {
-      for(let i = 0; i < p.count; i++) idx.push(vBase + i);
-    }
-    vBase += p.count;
-    g.dispose();
-  }
-  const merged = new THREE.BufferGeometry();
-  merged.setAttribute("position", new THREE.BufferAttribute(pos, 3));
-  merged.setAttribute("normal", new THREE.BufferAttribute(norm, 3));
-  merged.setAttribute("uv", new THREE.BufferAttribute(uvs, 2));
-  merged.setIndex(idx);
-  merged.computeVertexNormals();
-  // lay flat in XY, face +Z; we'll orient when placing
-  return merged;
+  const tex = new THREE.CanvasTexture(c);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  tex.anisotropy = 4;
+  return tex;
 }
 
-function makeFallingPetalGeo(){
-  const g = new THREE.ShapeGeometry(makeSinglePetalShape(), 8);
-  g.center();
-  g.scale(1.4, 1.4, 1.4);
-  return g;
+function makePetalTexture(){
+  const size = 64;
+  const c = document.createElement("canvas");
+  c.width = size; c.height = size;
+  const g = c.getContext("2d");
+  g.clearRect(0, 0, size, size);
+  g.translate(size / 2, size / 2);
+  const grad = g.createRadialGradient(0, size * 0.05, 1, 0, 0, size * 0.4);
+  grad.addColorStop(0, "rgba(255,220,235,0.95)");
+  grad.addColorStop(0.5, "rgba(255,160,195,0.9)");
+  grad.addColorStop(1, "rgba(240,100,150,0)");
+  g.fillStyle = grad;
+  g.beginPath();
+  g.moveTo(0, -size * 0.32);
+  g.bezierCurveTo(size * 0.22, -size * 0.1, size * 0.18, size * 0.2, 0, size * 0.35);
+  g.bezierCurveTo(-size * 0.18, size * 0.2, -size * 0.22, -size * 0.1, 0, -size * 0.32);
+  g.fill();
+  // notch
+  g.globalCompositeOperation = "destination-out";
+  g.beginPath();
+  g.moveTo(0, -size * 0.32);
+  g.lineTo(size * 0.04, -size * 0.2);
+  g.lineTo(0, -size * 0.24);
+  g.lineTo(-size * 0.04, -size * 0.2);
+  g.closePath();
+  g.fill();
+  g.globalCompositeOperation = "source-over";
+  const tex = new THREE.CanvasTexture(c);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  return tex;
 }
 
-const flowerMat = new THREE.MeshStandardMaterial({
-  color: 0xffb0cc,
-  emissive: 0xff80a8,
-  emissiveIntensity: 0.12,
-  roughness: 0.7,
-  metalness: 0.0,
-  side: THREE.DoubleSide,
+const sakuraTex = makeSakuraTexture();
+const petalTex = makePetalTexture();
+
+const flowerMat = new THREE.MeshBasicMaterial({
+  map: sakuraTex,
   transparent: true,
-  opacity: 0.95,
-  depthWrite: false
-});
-const flowerMatDeep = new THREE.MeshStandardMaterial({
-  color: 0xee88b0,
-  emissive: 0xc05080,
-  emissiveIntensity: 0.1,
-  roughness: 0.72,
-  metalness: 0.0,
+  depthWrite: false,
   side: THREE.DoubleSide,
-  transparent: true,
-  opacity: 0.93,
-  depthWrite: false
+  alphaTest: 0.08
 });
-const flowerMatLite = new THREE.MeshStandardMaterial({
-  color: 0xffd0e0,
-  emissive: 0xffb0c8,
-  emissiveIntensity: 0.08,
-  roughness: 0.65,
-  metalness: 0.0,
-  side: THREE.DoubleSide,
-  transparent: true,
-  opacity: 0.94,
-  depthWrite: false
-});
-const FLOWER_GEO = makeFlowerGeo();
+const flowerMatDeep = flowerMat.clone();
+flowerMatDeep.color = new THREE.Color(0xffd0e4);
+const flowerMatLite = flowerMat.clone();
+flowerMatLite.color = new THREE.Color(0xffffff);
 const FLOWER_MATS = [flowerMat, flowerMatDeep, flowerMatLite];
+
+// Simple quad for textured blossom (billboard-ish, rotated freely)
+const FLOWER_GEO = new THREE.PlaneGeometry(0.28, 0.28);
 
 /* ---------- Tree build ---------- */
 const treeRoot = new THREE.Group();
 scene.add(treeRoot);
 
-const branchGroups = []; // for wind
-const hangAnchors = [];  // tips with blossoms (for tools)
-const tipJoints = [];    // all outer tips — place flowers here
-const flowerClusters = []; // InstancedMesh children of joints
+const branchGroups = [];
+const hangAnchors = [];
+const tipJoints = [];
+const flowerClusters = [];
 
 const dummy = new THREE.Object3D();
 const _up = new THREE.Vector3(0, 1, 0);
+const _yAxis = new THREE.Vector3(0, 1, 0);
 
-function addBranchMesh(from, to, radiusBottom, radiusTop, radial = 7){
+function addBranchMesh(parent, from, to, radiusBottom, radiusTop, radial = 8){
   const dir = new THREE.Vector3().subVectors(to, from);
   const len = dir.length();
   if(len < 0.01) return null;
   const geo = new THREE.CylinderGeometry(radiusTop, radiusBottom, len, radial);
   geo.translate(0, len / 2, 0);
-  const mesh = new THREE.Mesh(geo, radiusBottom > 0.12 ? barkDarkMat : barkMat);
+  // subtle bark shade by thickness
+  const mat = radiusBottom > 0.14 ? barkDarkMat : (radiusBottom > 0.07 ? barkMat : barkLiteMat);
+  const mesh = new THREE.Mesh(geo, mat);
   mesh.position.copy(from);
   mesh.quaternion.setFromUnitVectors(_up, dir.clone().normalize());
   mesh.castShadow = true;
   mesh.receiveShadow = true;
+  parent.add(mesh);
   return mesh;
 }
 
-/** Attach a local-space flower cluster to a joint so wind moves it */
+/** Fibonacci sphere offsets for natural cluster density */
+function fibSphere(i, n, radius){
+  const y = 1 - (i / Math.max(1, n - 1)) * 2;
+  const r = Math.sqrt(Math.max(0, 1 - y * y));
+  const theta = Math.PI * (3 - Math.sqrt(5)) * i;
+  return new THREE.Vector3(
+    Math.cos(theta) * r * radius,
+    y * radius * 0.75,
+    Math.sin(theta) * r * radius
+  );
+}
+
 function addFlowerCluster(joint, count, spread){
   const mat = FLOWER_MATS[(rand() * 3) | 0];
   const mesh = new THREE.InstancedMesh(FLOWER_GEO, mat, count);
-  mesh.frustumCulled = false;
+  mesh.frustumCulled = true;
   mesh.renderOrder = 2;
   for(let i = 0; i < count; i++){
-    // tight cluster around the tip (local space of joint)
-    dummy.position.set(
-      rrange(-spread, spread),
-      rrange(-spread * 0.35, spread * 0.85),
-      rrange(-spread, spread)
-    );
-    const s = rrange(0.85, 1.45);
+    const off = fibSphere(i, count, spread);
+    // slight noise
+    off.x += rrange(-spread * 0.12, spread * 0.12);
+    off.y += rrange(-spread * 0.08, spread * 0.15);
+    off.z += rrange(-spread * 0.12, spread * 0.12);
+    dummy.position.copy(off);
+    const s = rrange(0.75, 1.35);
     dummy.scale.setScalar(s);
-    // face roughly outward from tip with variation
-    dummy.rotation.set(
-      rrange(-0.9, 0.9),
-      rrange(0, Math.PI * 2),
-      rrange(-0.9, 0.9)
-    );
+    // mostly face outward from tip center
+    dummy.lookAt(off.x * 2, off.y * 2 + 0.2, off.z * 2);
+    dummy.rotateZ(rrange(0, Math.PI * 2));
     dummy.updateMatrix();
     mesh.setMatrixAt(i, dummy.matrix);
   }
@@ -487,85 +498,109 @@ function addFlowerCluster(joint, count, spread){
   flowerClusters.push(mesh);
 }
 
+/**
+ * Controlled sakura skeleton:
+ * short thick trunk → wide primary fan → secondary/tertiary with droop.
+ * Flowers only on outer joints so canopy follows wood.
+ */
 function growBranch(parentGroup, origin, direction, length, radius, depth, maxDepth){
   direction = direction.clone().normalize();
-  // slight droop for sakura weep on outer limbs
-  if(depth > 2) direction.y -= 0.1;
-  direction.normalize();
+  // sakura outer limbs weep slightly
+  if(depth >= 3){
+    direction.y -= 0.12 + (depth - 3) * 0.04;
+    direction.normalize();
+  }
+
+  // curved segment: mid control point for organic bend
+  const mid = origin.clone().addScaledVector(direction, length * 0.5);
+  // lateral curve
+  const side = new THREE.Vector3().crossVectors(direction, _yAxis);
+  if(side.lengthSq() < 1e-6) side.set(1, 0, 0);
+  side.normalize();
+  mid.addScaledVector(side, rrange(-0.08, 0.08) * length);
+  mid.y += rrange(-0.03, 0.05) * length;
 
   const end = origin.clone().addScaledVector(direction, length);
-  const mesh = addBranchMesh(origin, end, radius, radius * 0.62, depth < 2 ? 10 : 6);
-  if(mesh) parentGroup.add(mesh);
+  // two-cylinder chain for slight curve
+  addBranchMesh(parentGroup, origin, mid, radius, radius * 0.78, depth < 2 ? 10 : 7);
+  addBranchMesh(parentGroup, mid, end, radius * 0.78, radius * 0.58, depth < 2 ? 9 : 6);
 
-  // wind node at end — children + flowers attach here
   const joint = new THREE.Group();
   joint.position.copy(end);
   parentGroup.add(joint);
   joint.userData = {
     phase: rrange(0, Math.PI * 2),
-    flex: 0.012 + depth * 0.01,
+    flex: 0.01 + depth * 0.009,
     depth
   };
   branchGroups.push(joint);
 
-  const isTip = depth >= maxDepth || length < 0.18;
+  const isTip = depth >= maxDepth || length < 0.2;
 
-  // blossoms along outer mid-segments (local to joint, slightly back toward parent)
-  if(depth >= 3 && !isTip && rand() < 0.5){
-    const n = 2 + (rand() * 3 | 0);
-    // cluster slightly behind tip along -Y of previous direction is hard in local;
-    // place near joint origin with small spread
-    addFlowerCluster(joint, n, 0.1);
+  // blossoms on outer wood (depth 3+)
+  if(depth >= 3 && !isTip && rand() < 0.65){
+    addFlowerCluster(joint, 4 + (rand() * 5 | 0), 0.12 + depth * 0.01);
   }
 
   if(isTip){
     tipJoints.push(joint);
-    // dense tip cluster — this IS the canopy, stuck to the branch
-    const n = 10 + (rand() * 12 | 0);
-    addFlowerCluster(joint, n, 0.2);
-    // tools only on blossomed tips
-    if(depth >= 3 && rand() < 0.55){
-      hangAnchors.push({ group: joint, local: new THREE.Vector3(0, -0.12, 0), score: 0 });
+    // dense tip puff — main canopy volume
+    const n = 14 + (rand() * 16 | 0);
+    addFlowerCluster(joint, n, 0.22 + rand() * 0.08);
+    if(depth >= 3 && rand() < 0.5){
+      hangAnchors.push({ group: joint, local: new THREE.Vector3(0, -0.14, 0), score: 0 });
     }
     return joint;
   }
 
-  // children
+  // child count by depth — wider at crown split
   let childCount;
-  if(depth === 0) childCount = 5;
+  if(depth === 0) childCount = 6;
   else if(depth === 1) childCount = 4;
   else if(depth === 2) childCount = 3;
-  else childCount = rand() < 0.55 ? 2 : 3;
+  else if(depth === 3) childCount = rand() < 0.7 ? 3 : 2;
+  else childCount = rand() < 0.5 ? 2 : 1;
 
   for(let c = 0; c < childCount; c++){
-    const spread = depth === 0 ? rrange(-0.85, 0.85) : rrange(-0.7, 0.7);
-    const lift = depth === 0 ? rrange(0.35, 0.75) : rrange(-0.2, 0.5);
-    const axis = new THREE.Vector3(rrange(-1,1), rrange(-0.2,1), rrange(-1,1)).normalize();
-    const childDir = direction.clone()
-      .applyAxisAngle(axis, spread)
-      .add(new THREE.Vector3(0, lift * 0.35, 0))
-      .normalize();
-
+    let childDir;
     if(depth === 0){
-      const a = (c / childCount) * Math.PI * 1.7 - Math.PI * 0.85;
-      childDir.set(
-        Math.sin(a) * 0.9,
-        0.48 + rrange(0, 0.28),
-        Math.cos(a) * 0.55 + rrange(-0.15, 0.15)
+      // wide horizontal sakura fan (broader than tall)
+      const a = (c / childCount) * Math.PI * 1.85 - Math.PI * 0.925;
+      const elev = 0.38 + rrange(0, 0.32);
+      childDir = new THREE.Vector3(
+        Math.sin(a) * (0.95 + rrange(-0.08, 0.08)),
+        elev,
+        Math.cos(a) * (0.65 + rrange(-0.1, 0.12))
       ).normalize();
+    } else {
+      const axis = new THREE.Vector3(rrange(-1, 1), rrange(0.1, 1), rrange(-1, 1)).normalize();
+      const spread = rrange(0.35, 0.85) * (c % 2 === 0 ? 1 : -1);
+      childDir = direction.clone()
+        .applyAxisAngle(axis, spread)
+        .add(new THREE.Vector3(0, rrange(-0.25, 0.4), 0))
+        .normalize();
     }
 
-    const childLen = length * rrange(0.62, 0.78);
-    const childRad = radius * rrange(0.55, 0.68);
+    // length: keep canopy wide; don't shoot sky-high
+    let lenMul = depth === 0 ? rrange(0.72, 0.88)
+      : depth === 1 ? rrange(0.65, 0.8)
+      : depth === 2 ? rrange(0.58, 0.72)
+      : rrange(0.55, 0.7);
+    // outer limbs longer horizontally
+    if(depth === 0 && Math.abs(childDir.x) > 0.5) lenMul *= 1.08;
+
+    const childLen = length * lenMul;
+    const childRad = radius * rrange(0.52, 0.64);
     growBranch(joint, new THREE.Vector3(0, 0, 0), childDir, childLen, childRad, depth + 1, maxDepth);
   }
 
-  if(depth > 0 && depth < maxDepth - 1 && rand() < 0.4){
+  // side spur for denser silhouette
+  if(depth >= 1 && depth <= 3 && rand() < 0.45){
     const spurDir = direction.clone()
-      .applyAxisAngle(new THREE.Vector3(0,1,0), rrange(-1.2, 1.2))
-      .add(new THREE.Vector3(0, rrange(-0.35, 0.15), 0))
+      .applyAxisAngle(new THREE.Vector3(0, 1, 0), rrange(-1.3, 1.3))
+      .add(new THREE.Vector3(0, rrange(-0.4, 0.1), 0))
       .normalize();
-    growBranch(joint, new THREE.Vector3(0, 0, 0), spurDir, length * rrange(0.35, 0.5), radius * 0.45, depth + 2, maxDepth);
+    growBranch(joint, new THREE.Vector3(0, 0, 0), spurDir, length * rrange(0.32, 0.48), radius * 0.42, depth + 2, maxDepth);
   }
 
   return joint;
@@ -585,68 +620,129 @@ function buildTree(){
   const trunkGroup = new THREE.Group();
   treeRoot.add(trunkGroup);
 
-  const trunkStart = new THREE.Vector3(0, 0, 0);
-  const trunkDir = new THREE.Vector3(0.02, 1, -0.01).normalize();
-  const trunkLen = mobile ? 2.0 : 2.3;
-  const trunkR = mobile ? 0.16 : 0.2;
+  // Multi-segment trunk with gentle S-curve
+  const trunkR = mobile ? 0.17 : 0.22;
+  const segments = [
+    { y: 0.0,  r: trunkR * 1.9 },
+    { y: 0.35, r: trunkR * 1.45 },
+    { y: 0.85, r: trunkR * 1.15 },
+    { y: 1.35, r: trunkR * 0.95 },
+    { y: 1.85, r: trunkR * 0.82 },
+    { y: mobile ? 2.05 : 2.25, r: trunkR * 0.72 }
+  ];
+  // slight lean
+  let px = 0, pz = 0;
+  for(let i = 0; i < segments.length - 1; i++){
+    const a = segments[i];
+    const b = segments[i + 1];
+    const lean = 0.04 * Math.sin(i * 0.9);
+    const from = new THREE.Vector3(px, a.y, pz);
+    px += lean;
+    pz += lean * 0.4;
+    const to = new THREE.Vector3(px, b.y, pz);
+    addBranchMesh(trunkGroup, from, to, a.r, b.r, 12);
+  }
 
-  const baseGeo = new THREE.CylinderGeometry(trunkR * 1.55, trunkR * 2.1, 0.35, 12);
+  // Root flare disc-ish base
+  const baseGeo = new THREE.CylinderGeometry(trunkR * 2.0, trunkR * 2.6, 0.28, 14);
   const base = new THREE.Mesh(baseGeo, barkDarkMat);
-  base.position.y = 0.12;
+  base.position.y = 0.1;
   base.castShadow = true;
   base.receiveShadow = true;
   trunkGroup.add(base);
 
-  growBranch(trunkGroup, trunkStart, trunkDir, trunkLen, trunkR, 0, maxDepth);
+  const trunkTop = new THREE.Vector3(px, segments[segments.length - 1].y, pz);
+  const trunkTopJoint = new THREE.Group();
+  trunkTopJoint.position.copy(trunkTop);
+  trunkGroup.add(trunkTopJoint);
+  trunkTopJoint.userData = { phase: 0.2, flex: 0.006, depth: 0 };
+  branchGroups.push(trunkTopJoint);
+
+  // Primary limbs from trunk top — wide sakura fan
+  const primN = mobile ? 5 : 6;
+  const trunkLen = segments[segments.length - 1].y;
+  for(let c = 0; c < primN; c++){
+    const a = (c / primN) * Math.PI * 1.9 - Math.PI * 0.95;
+    const elev = 0.32 + rrange(0.05, 0.28);
+    const dir = new THREE.Vector3(
+      Math.sin(a) * 1.0,
+      elev,
+      Math.cos(a) * 0.7 + rrange(-0.08, 0.08)
+    ).normalize();
+    const len = trunkLen * rrange(0.85, 1.05);
+    const rad = trunkR * rrange(0.48, 0.58);
+    growBranch(trunkTopJoint, new THREE.Vector3(0, 0, 0), dir, len, rad, 1, maxDepth);
+  }
+  // one upward leader for crown height
+  growBranch(
+    trunkTopJoint,
+    new THREE.Vector3(0, 0, 0),
+    new THREE.Vector3(rrange(-0.15, 0.15), 1, rrange(-0.15, 0.15)).normalize(),
+    trunkLen * 0.55,
+    trunkR * 0.42,
+    1,
+    maxDepth
+  );
+
   treeRoot.updateMatrixWorld(true);
 
-  // Score hang anchors in world space (only blossomed tips)
   for(const h of hangAnchors){
     const wp = new THREE.Vector3();
     h.group.getWorldPosition(wp);
-    h.score = wp.y + Math.hypot(wp.x, wp.z) * 0.35;
+    // Prefer mid-lower outer tips for tools (readable under canopy edge)
+    h.score = (4.5 - Math.abs(wp.y - 2.2)) + Math.hypot(wp.x, wp.z) * 0.4;
   }
 
   placeTools();
   fitCameraToTree();
 }
 
-/** Pull camera back so the whole tree fits with margin */
+/** Fit full tree with healthy margin on all aspect ratios */
 function fitCameraToTree(){
   treeRoot.updateMatrixWorld(true);
   const box = new THREE.Box3().setFromObject(treeRoot);
   if(box.isEmpty()) return;
+  // Expand box slightly for flower billboards
+  box.expandByScalar(0.35);
+
   const size = new THREE.Vector3();
   const center = new THREE.Vector3();
   box.getSize(size);
   box.getCenter(center);
 
-  // Aim slightly below geometric center so trunk base stays in frame
-  const target = new THREE.Vector3(center.x, center.y * 0.55, center.z);
+  // Look at mid-trunk so base + crown share the frame
+  const target = new THREE.Vector3(center.x, Math.max(1.1, center.y * 0.48), center.z);
   controls.target.copy(target);
 
-  const maxDim = Math.max(size.x, size.y, size.z);
-  const fov = camera.fov * (Math.PI / 180);
-  // Extra margin (2.4) so canopy top isn't clipped on wide/short viewports
-  let dist = (maxDim / 2) / Math.tan(fov / 2) * 2.4;
-  dist = Math.max(dist, 12);
-  dist = Math.min(dist, controls.maxDistance * 0.9);
+  const aspect = camera.aspect || 1;
+  const fovY = camera.fov * (Math.PI / 180);
+  const fovX = 2 * Math.atan(Math.tan(fovY / 2) * aspect);
+  // Distance needed for height and width
+  const distH = (size.y * 0.55) / Math.tan(fovY / 2);
+  const distW = (size.x * 0.55) / Math.tan(fovX / 2);
+  let dist = Math.max(distH, distW) * 1.35; // margin
+  // ultrawide short windows need more distance
+  if(aspect > 1.8) dist *= 1.12;
+  if(aspect < 0.85) dist *= 1.2;
+  dist = Math.max(14, Math.min(dist, controls.maxDistance * 0.92));
 
-  // Keep a pleasant 3/4 view, not dead-on
-  const dir = new THREE.Vector3(0.25, 0.32, 1).normalize();
+  const dir = new THREE.Vector3(0.22, 0.28, 1).normalize();
   camera.position.copy(target).addScaledVector(dir, dist);
   camera.near = 0.1;
-  camera.far = Math.max(80, dist * 4);
+  camera.far = Math.max(100, dist * 5);
   camera.updateProjectionMatrix();
   controls.update();
 }
 
-/* Falling sakura petals (same petal silhouette) */
-const PETAL_N = 90;
-const petalGeo = makeFallingPetalGeo();
-const petalMat = new THREE.MeshStandardMaterial({
-  color: 0xffb0d0, emissive: 0xff80b0, emissiveIntensity: 0.12,
-  side: THREE.DoubleSide, transparent: true, opacity: 0.88, depthWrite: false
+/* Falling sakura petals */
+const PETAL_N = 100;
+const petalGeo = new THREE.PlaneGeometry(0.12, 0.16);
+const petalMat = new THREE.MeshBasicMaterial({
+  map: petalTex,
+  transparent: true,
+  depthWrite: false,
+  side: THREE.DoubleSide,
+  alphaTest: 0.1
 });
 const petalMesh = new THREE.InstancedMesh(petalGeo, petalMat, PETAL_N);
 petalMesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
@@ -655,15 +751,15 @@ scene.add(petalMesh);
 const petals = [];
 for(let i = 0; i < PETAL_N; i++){
   petals.push({
-    x: rrange(-3, 3), y: rrange(2, 6), z: rrange(-3, 3),
-    vx: rrange(-0.15, 0.15), vy: rrange(-0.35, -0.12), vz: rrange(-0.15, 0.15),
-    rot: rrange(0, Math.PI * 2), vrot: rrange(-1.5, 1.5),
-    phase: rrange(0, Math.PI * 2), amp: rrange(0.15, 0.45),
-    alive: rand() < 0.35
+    x: 0, y: -10, z: 0,
+    vx: 0, vy: 0, vz: 0,
+    rot: 0, vrot: 0,
+    phase: rrange(0, Math.PI * 2), amp: rrange(0.15, 0.5),
+    alive: false
   });
 }
 
-/* Tools as CSS2D — only on blossomed tips */
+/* Tools as CSS2D — blossomed tips only */
 const toolObjects = [];
 function placeTools(){
   toolObjects.forEach(o => {
@@ -674,7 +770,7 @@ function placeTools(){
 
   hangAnchors.sort((a, b) => b.score - a.score);
   const chosen = [];
-  const minD = 0.85;
+  const minD = 0.9;
   for(const h of hangAnchors){
     if(chosen.length >= TOOLS.length) break;
     const wp = new THREE.Vector3();
@@ -683,9 +779,8 @@ function placeTools(){
     for(const c of chosen){
       if(wp.distanceTo(c.wp) < minD){ ok = false; break; }
     }
-    if(ok && wp.y > 1.0 && wp.y < 4.8) chosen.push({ ...h, wp });
+    if(ok && wp.y > 1.0 && wp.y < 4.5) chosen.push({ ...h, wp });
   }
-  // pad with any tip joints if needed
   if(chosen.length < TOOLS.length){
     for(const j of tipJoints){
       if(chosen.length >= TOOLS.length) break;
@@ -695,14 +790,13 @@ function placeTools(){
       for(const c of chosen){
         if(wp.distanceTo(c.wp) < minD){ ok = false; break; }
       }
-      if(ok && wp.y > 1.2){
-        chosen.push({ group: j, local: new THREE.Vector3(0, -0.12, 0), wp });
+      if(ok && wp.y > 1.15 && wp.y < 4.2){
+        chosen.push({ group: j, local: new THREE.Vector3(0, -0.14, 0), wp });
       }
     }
   }
 
   for(let t = 0; t < TOOLS.length && t < chosen.length; t++){
-    // continue with existing loop body - need to fix the rest of placeTools
     const tool = TOOLS[t];
     const anchor = chosen[t];
     const el = document.createElement("a");
@@ -717,8 +811,8 @@ function placeTools(){
     el.querySelector(".label").textContent = tool.name;
 
     const obj = new CSS2DObject(el);
-    obj.position.copy(anchor.local || new THREE.Vector3(0, -0.12, 0));
-    obj.userData = { phase: t * 0.8, drop: 0.12 + (t % 3) * 0.04, swing: 0 };
+    obj.position.copy(anchor.local || new THREE.Vector3(0, -0.14, 0));
+    obj.userData = { phase: t * 0.8, drop: 0.1 + (t % 3) * 0.035 };
     anchor.group.add(obj);
     toolObjects.push(obj);
   }
@@ -726,72 +820,70 @@ function placeTools(){
 
 /* ---------- Animation ---------- */
 const clock = new THREE.Clock();
-let windGust = 0.15;
-let windTarget = 0.15;
+let windGust = 0.12;
+let windTarget = 0.12;
 let windT = 0;
 
 function animateBranches(t){
   windT -= 0.016;
   if(windT <= 0){
-    windTarget = rrange(0.05, 0.35);
-    windT = rrange(2, 5);
+    windTarget = rrange(0.04, 0.28);
+    windT = rrange(2.5, 5.5);
   }
-  windGust += (windTarget - windGust) * 0.02;
-  const breeze = Math.sin(t * 0.7) * 0.4 + Math.sin(t * 0.23) * 0.25 + windGust;
+  windGust += (windTarget - windGust) * 0.018;
+  const breeze = Math.sin(t * 0.55) * 0.35 + Math.sin(t * 0.19) * 0.2 + windGust;
 
   for(const g of branchGroups){
     const d = g.userData;
     if(!d || d.depth < 1) continue;
-    const amp = d.flex * (0.3 + d.depth * 0.35) * breeze;
-    const ax = Math.sin(t * 1.1 + d.phase) * amp;
-    const az = Math.cos(t * 0.9 + d.phase * 1.3) * amp * 0.7;
-    g.rotation.x = ax;
-    g.rotation.z = az;
+    // gentler on thick wood, freer at tips
+    const amp = d.flex * (0.15 + d.depth * 0.28) * breeze;
+    g.rotation.x = Math.sin(t * 0.95 + d.phase) * amp;
+    g.rotation.z = Math.cos(t * 0.8 + d.phase * 1.2) * amp * 0.65;
   }
-
-  // gentle flower bob via re-instance occasionally is expensive —
-  // skip; branch wind moves parents enough
 }
 
 function animatePetals(dt, t){
   for(let i = 0; i < PETAL_N; i++){
     const p = petals[i];
     if(!p.alive){
-      if(rand() < 0.012){
+      if(Math.random() < 0.015){
         p.alive = true;
-        // spawn from a blossomed tip when possible
         if(tipJoints.length){
           const j = tipJoints[(Math.random() * tipJoints.length) | 0];
           const wp = new THREE.Vector3();
           j.getWorldPosition(wp);
-          p.x = wp.x + rrange(-0.25, 0.25);
-          p.y = wp.y + rrange(-0.1, 0.2);
-          p.z = wp.z + rrange(-0.25, 0.25);
+          p.x = wp.x + rrange(-0.3, 0.3);
+          p.y = wp.y + rrange(-0.05, 0.25);
+          p.z = wp.z + rrange(-0.3, 0.3);
         } else {
           p.x = rrange(-2.5, 2.5);
-          p.y = rrange(3.5, 5.5);
+          p.y = rrange(3, 5);
           p.z = rrange(-2.5, 2.5);
         }
-        p.vy = rrange(-0.4, -0.15);
-        p.vx = rrange(-0.2, 0.2);
-        p.vz = rrange(-0.2, 0.2);
+        p.vy = rrange(-0.38, -0.12);
+        p.vx = rrange(-0.18, 0.18);
+        p.vz = rrange(-0.18, 0.18);
+        p.rot = rrange(0, Math.PI * 2);
+        p.vrot = rrange(-2, 2);
+        p.amp = rrange(0.2, 0.55);
       } else {
-        dummy.position.set(0, -10, 0);
-        dummy.scale.set(0, 0, 0);
+        dummy.position.set(0, -20, 0);
+        dummy.scale.setScalar(0);
         dummy.updateMatrix();
         petalMesh.setMatrixAt(i, dummy.matrix);
         continue;
       }
     }
-    p.vy -= 0.15 * dt;
-    p.vx += Math.sin(t + p.phase) * 0.02 * dt;
-    p.x += (p.vx + Math.sin(t * 1.5 + p.phase) * p.amp * 0.3) * dt;
+    p.vy -= 0.12 * dt;
+    p.vx += Math.sin(t + p.phase) * 0.025 * dt;
+    p.x += (p.vx + Math.sin(t * 1.4 + p.phase) * p.amp * 0.35) * dt;
     p.y += p.vy * dt;
-    p.z += (p.vz + Math.cos(t * 1.2 + p.phase) * p.amp * 0.25) * dt;
+    p.z += (p.vz + Math.cos(t * 1.1 + p.phase) * p.amp * 0.3) * dt;
     p.rot += p.vrot * dt;
-    if(p.y < 0.05){ p.alive = false; }
+    if(p.y < 0.02) p.alive = false;
     dummy.position.set(p.x, p.y, p.z);
-    dummy.rotation.set(p.rot, p.rot * 0.7, p.rot * 0.3);
+    dummy.rotation.set(p.rot * 0.6, p.rot, p.rot * 0.4);
     dummy.scale.setScalar(1);
     dummy.updateMatrix();
     petalMesh.setMatrixAt(i, dummy.matrix);
@@ -802,9 +894,9 @@ function animatePetals(dt, t){
 function animateTools(t){
   for(const o of toolObjects){
     const u = o.userData;
-    const sway = Math.sin(t * 1.2 + u.phase) * 0.08 * windGust;
+    const sway = Math.sin(t * 1.1 + u.phase) * 0.07 * (0.4 + windGust);
     o.position.x = Math.sin(sway) * u.drop;
-    o.position.y = -0.12 - Math.cos(sway) * 0.02;
+    o.position.y = -0.14 - Math.abs(Math.cos(sway)) * 0.02;
   }
 }
 
@@ -815,16 +907,14 @@ function onResize(){
   renderer.setSize(w, h);
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.75));
   labelRenderer.setSize(w, h);
-  // Re-fit on resize so ultrawide / short windows still see the full tree
   fitCameraToTree();
 }
 window.addEventListener("resize", onResize);
 
-// click gust
 window.addEventListener("pointerdown", (e) => {
   if(e.target.closest && e.target.closest("a,button")) return;
-  windTarget = 0.7;
-  windT = 1.5;
+  windTarget = 0.55;
+  windT = 1.8;
 });
 
 function frame(){
