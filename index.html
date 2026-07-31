@@ -94,6 +94,8 @@ html[data-theme="light"] .toggle .ti-moon{display:none}
   display:block;text-decoration:none;color:inherit;
   transform:translate(-50%, 0);
   will-change:transform;
+  pointer-events:auto;
+  cursor:pointer;
 }
 .orn::before{
   content:"";position:absolute;left:50%;top:-22px;width:1px;height:22px;
@@ -239,6 +241,7 @@ labelRenderer.setSize(window.innerWidth, window.innerHeight);
 labelRenderer.domElement.id = "labels";
 labelRenderer.domElement.style.position = "fixed";
 labelRenderer.domElement.style.inset = "0";
+// Labels must not block orbit; tools re-enable clicks on themselves
 labelRenderer.domElement.style.pointerEvents = "none";
 labelRenderer.domElement.style.zIndex = "2";
 document.body.appendChild(labelRenderer.domElement);
@@ -247,18 +250,31 @@ const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(36, window.innerWidth / window.innerHeight, 0.1, 200);
 camera.position.set(1.0, 3.2, 18);
 
-const controls = new OrbitControls(camera, labelRenderer.domElement);
+// Bind orbit to the WebGL canvas (not the no-events label overlay)
+const controls = new OrbitControls(camera, canvas);
 controls.enableDamping = true;
-controls.dampingFactor = 0.055;
+controls.dampingFactor = 0.06;
+controls.enableRotate = true;
+controls.enablePan = false;
+controls.enableZoom = true;
+controls.rotateSpeed = 0.7;
+controls.zoomSpeed = 0.9;
 controls.minDistance = 9;
 controls.maxDistance = 40;
-controls.minPolarAngle = 0.22;
-controls.maxPolarAngle = Math.PI * 0.49;
+controls.minPolarAngle = 0.2;
+controls.maxPolarAngle = Math.PI * 0.5;
 controls.target.set(0, 1.4, 0);
 controls.autoRotate = !reduce.matches;
-controls.autoRotateSpeed = 0.3;
-// don't auto-rotate while user interacts
-controls.addEventListener("start", () => { controls.autoRotate = false; });
+controls.autoRotateSpeed = 0.35;
+// pause auto-spin while dragging; resume after a while of idle
+let idleTimer = 0;
+controls.addEventListener("start", () => {
+  controls.autoRotate = false;
+  idleTimer = 0;
+});
+controls.addEventListener("end", () => {
+  idleTimer = 0;
+});
 
 /* Lights */
 const hemi = new THREE.HemisphereLight(0xc8d4ff, 0x3a2218, 0.7);
@@ -926,6 +942,11 @@ function frame(){
     animateBranches(t);
     animatePetals(dt, t);
     animateTools(t);
+    // resume gentle auto-orbit after ~6s idle
+    idleTimer += dt;
+    if(idleTimer > 6 && !controls.autoRotate && !reduce.matches){
+      controls.autoRotate = true;
+    }
   }
   controls.update();
   renderer.render(scene, camera);
