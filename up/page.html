@@ -1,0 +1,322 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#07080f">
+<meta name="robots" content="noindex, nofollow">
+<meta name="description" content="Enviar un archivo">
+<title>Enviar archivo · kidandcat</title>
+<style>
+:root {
+  --bg-0: #05060c;
+  --bg-1: #0a0c17;
+  --sky: #161028;
+  --ink: #eef1fb;
+  --ink-dim: #9aa2be;
+  --ink-faint: #5a627e;
+  --line: rgba(150, 175, 255, 0.18);
+  --line-strong: rgba(150, 175, 255, 0.32);
+  --accent: #57e6ff;
+  --sakura: #ff6ea9;
+  --warm: #ffb570;
+  --ok: #6dffb0;
+  --warn: #ffd36a;
+  --bad: #ff7b8a;
+  --panel: rgba(12, 16, 32, 0.72);
+  --radius: 18px;
+  --font: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --mono: ui-monospace, "SF Mono", "Cascadia Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+  --shadow: 0 24px 60px -28px rgba(0, 0, 0, 0.75);
+  --max: 1073741824;
+}
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  min-height: 100svh;
+  font-family: var(--font);
+  color: var(--ink);
+  background: var(--bg-1);
+  -webkit-font-smoothing: antialiased;
+  line-height: 1.5;
+}
+.bg {
+  position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden;
+  background:
+    radial-gradient(90% 60% at 70% 0%, var(--sky) 0%, transparent 55%),
+    radial-gradient(70% 50% at 10% 90%, rgba(58, 26, 36, 0.55) 0%, transparent 55%),
+    linear-gradient(180deg, #070a18 0%, var(--bg-1) 50%, var(--bg-0) 100%);
+}
+.bg .o1, .bg .o2 {
+  position: absolute; border-radius: 50%; filter: blur(72px);
+}
+.bg .o1 {
+  width: 42vmax; height: 42vmax; top: -12%; right: -8%;
+  background: radial-gradient(circle, var(--accent), transparent 65%);
+  opacity: 0.16;
+}
+.bg .o2 {
+  width: 36vmax; height: 36vmax; bottom: 5%; left: -10%;
+  background: radial-gradient(circle, var(--sakura), transparent 65%);
+  opacity: 0.12;
+}
+.wrap {
+  position: relative; z-index: 1;
+  width: min(560px, calc(100% - 2rem));
+  margin: 0 auto;
+  padding: 1.25rem 0 3rem;
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+}
+.top {
+  display: flex; align-items: center; justify-content: space-between;
+  font-family: var(--mono); font-size: 0.72rem; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--ink-faint); margin-bottom: 2.4rem;
+}
+.top a {
+  color: var(--ink-dim); text-decoration: none;
+  border-bottom: 1px solid transparent;
+}
+.top a:hover { color: var(--accent); border-color: var(--accent); }
+h1 {
+  margin: 0 0 0.4rem;
+  font-weight: 650;
+  font-size: clamp(2rem, 8vw, 2.8rem);
+  letter-spacing: -0.035em;
+  line-height: 1;
+}
+.lede { margin: 0 0 1.6rem; color: var(--ink-dim); font-size: 1.02rem; }
+.lede strong { color: var(--ink); font-weight: 550; }
+
+.drop {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 0.55rem; text-align: center;
+  min-height: 220px; padding: 1.6rem 1.2rem;
+  border-radius: var(--radius);
+  border: 1.5px dashed var(--line-strong);
+  background: var(--panel);
+  box-shadow: var(--shadow);
+  cursor: pointer;
+  transition: border-color .15s, background .15s, transform .15s;
+}
+.drop:hover, .drop.over {
+  border-color: var(--accent);
+  background: rgba(87, 230, 255, 0.06);
+}
+.drop:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.drop .icon {
+  width: 42px; height: 42px; color: var(--accent); margin-bottom: 0.2rem;
+}
+.drop .title { font-weight: 600; font-size: 1.05rem; }
+.drop .hint { color: var(--ink-faint); font-size: 0.88rem; }
+.file {
+  display: none; margin-top: 1rem; padding: 0.95rem 1.05rem;
+  border-radius: 14px; border: 1px solid var(--line); background: var(--panel);
+}
+.file.on { display: block; }
+.file .name {
+  font-weight: 600; word-break: break-word; letter-spacing: -0.01em;
+}
+.file .meta {
+  margin-top: 0.2rem; color: var(--ink-faint);
+  font-family: var(--mono); font-size: 0.75rem; letter-spacing: 0.04em;
+}
+.bar {
+  display: none; height: 6px; margin-top: 0.85rem; border-radius: 999px;
+  background: rgba(150, 175, 255, 0.12); overflow: hidden;
+}
+.bar.on { display: block; }
+.bar > i {
+  display: block; height: 100%; width: 0;
+  background: linear-gradient(90deg, var(--accent), var(--sakura));
+  transition: width .12s linear;
+}
+.row { display: flex; gap: 0.7rem; margin-top: 1.15rem; }
+button {
+  appearance: none; border: 0; cursor: pointer;
+  font: inherit; font-weight: 600; letter-spacing: -0.01em;
+  padding: 0.85rem 1.15rem; border-radius: 12px;
+  background: var(--ink); color: #07080f;
+  flex: 1;
+  transition: transform .12s, opacity .12s, background .12s;
+}
+button:hover { transform: translateY(-1px); }
+button:disabled { opacity: .45; cursor: not-allowed; transform: none; }
+button.ghost {
+  flex: 0 0 auto; background: transparent; color: var(--ink-dim);
+  border: 1px solid var(--line);
+}
+.status {
+  min-height: 1.4em; margin-top: 1rem;
+  font-size: 0.95rem; color: var(--ink-dim);
+}
+.status.ok { color: var(--ok); }
+.status.bad { color: var(--bad); }
+input[type=file] { display: none; }
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; }
+}
+</style>
+</head>
+<body>
+<div class="bg" aria-hidden="true"><span class="o1"></span><span class="o2"></span></div>
+<div class="wrap">
+  <header class="top">
+    <a href="/">kidandcat</a>
+    <span>hasta 1 GB</span>
+  </header>
+  <h1>Enviar archivo</h1>
+  <p class="lede">Elige un fichero — un zip, fotos, lo que sea — y pulsa enviar. <strong>Máximo 1&nbsp;GB.</strong></p>
+
+  <div class="drop" id="drop" tabindex="0" role="button" aria-label="Elegir archivo">
+    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M12 16V4"/><path d="M7 9l5-5 5 5"/><path d="M4 16v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/>
+    </svg>
+    <div class="title">Toca para elegir</div>
+    <div class="hint">o suelta el archivo aquí</div>
+  </div>
+  <input id="input" type="file" />
+
+  <div class="file" id="info">
+    <div class="name" id="fname"></div>
+    <div class="meta" id="fmeta"></div>
+    <div class="bar" id="bar"><i id="fill"></i></div>
+  </div>
+
+  <div class="row">
+    <button type="button" class="ghost" id="clear" hidden>Quitar</button>
+    <button type="button" id="send" disabled>Enviar</button>
+  </div>
+  <div class="status" id="status" role="status"></div>
+</div>
+<script>
+const MAX = 1073741824;
+const drop = document.getElementById('drop');
+const input = document.getElementById('input');
+const info = document.getElementById('info');
+const fname = document.getElementById('fname');
+const fmeta = document.getElementById('fmeta');
+const bar = document.getElementById('bar');
+const fill = document.getElementById('fill');
+const send = document.getElementById('send');
+const clear = document.getElementById('clear');
+const status = document.getElementById('status');
+let file = null;
+let busy = false;
+
+function bytes(n) {
+  if (n < 1024) return n + ' B';
+  if (n < 1048576) return (n / 1024).toFixed(1) + ' KB';
+  if (n < 1073741824) return (n / 1048576).toFixed(1) + ' MB';
+  return (n / 1073741824).toFixed(2) + ' GB';
+}
+function setStatus(msg, kind) {
+  status.textContent = msg || '';
+  status.className = 'status' + (kind ? ' ' + kind : '');
+}
+function pick(f) {
+  file = f || null;
+  fill.style.width = '0%';
+  bar.classList.remove('on');
+  if (!file) {
+    info.classList.remove('on');
+    send.disabled = true;
+    clear.hidden = true;
+    return;
+  }
+  info.classList.add('on');
+  fname.textContent = file.name;
+  fmeta.textContent = bytes(file.size);
+  clear.hidden = false;
+  if (file.size === 0) {
+    send.disabled = true;
+    setStatus('Ese archivo está vacío.', 'bad');
+    return;
+  }
+  if (file.size > MAX) {
+    send.disabled = true;
+    setStatus('Pesa más de 1 GB. Comprímelo un poco o mándalo en partes.', 'bad');
+    return;
+  }
+  send.disabled = false;
+  setStatus('');
+}
+drop.addEventListener('click', () => { if (!busy) input.click(); });
+drop.addEventListener('keydown', (e) => {
+  if (!busy && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); input.click(); }
+});
+input.addEventListener('change', () => pick(input.files && input.files[0]));
+;['dragenter','dragover'].forEach((ev) => {
+  drop.addEventListener(ev, (e) => { e.preventDefault(); drop.classList.add('over'); });
+});
+;['dragleave','drop'].forEach((ev) => {
+  drop.addEventListener(ev, (e) => { e.preventDefault(); drop.classList.remove('over'); });
+});
+drop.addEventListener('drop', (e) => {
+  const f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+  if (f) pick(f);
+});
+clear.addEventListener('click', () => {
+  if (busy) return;
+  input.value = '';
+  pick(null);
+  setStatus('');
+});
+
+send.addEventListener('click', () => {
+  if (!file || busy) return;
+  busy = true;
+  send.disabled = true;
+  clear.hidden = true;
+  bar.classList.add('on');
+  fill.style.width = '0%';
+  setStatus('Enviando…');
+  window.onbeforeunload = () => '';
+
+  const body = new FormData();
+  body.append('file', file, file.name);
+  const xhr = new XMLHttpRequest();
+  xhr.open('POST', '/up');
+  xhr.upload.onprogress = (e) => {
+    if (!e.lengthComputable) return;
+    const pct = Math.max(0, Math.min(100, Math.round(e.loaded / e.total * 100)));
+    fill.style.width = pct + '%';
+    setStatus('Enviando… ' + pct + '% · ' + bytes(e.loaded) + ' de ' + bytes(e.total));
+  };
+  xhr.onerror = () => done(false, 'Se cortó la conexión. Prueba de nuevo.');
+  xhr.onload = () => {
+    let data = null;
+    try { data = JSON.parse(xhr.responseText); } catch (e) {}
+    if (xhr.status >= 200 && xhr.status < 300 && data && data.ok) {
+      fill.style.width = '100%';
+      done(true, 'Listo. Ya lo tengo (' + bytes(data.size) + ').');
+      return;
+    }
+    const msg = (data && data.error) || 'No se ha podido enviar. Código ' + xhr.status + '.';
+    done(false, msg);
+  };
+  xhr.send(body);
+
+  function done(ok, msg) {
+    busy = false;
+    window.onbeforeunload = null;
+    setStatus(msg, ok ? 'ok' : 'bad');
+    send.disabled = !ok && !!file && file.size > 0 && file.size <= MAX;
+    clear.hidden = false;
+    if (ok) {
+      input.value = '';
+      file = null;
+      info.classList.remove('on');
+      bar.classList.remove('on');
+      fill.style.width = '0%';
+      send.textContent = 'Enviar';
+      send.disabled = true;
+      clear.hidden = true;
+    }
+  }
+});
+</script>
+</body>
+</html>
