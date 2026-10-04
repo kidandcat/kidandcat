@@ -36,11 +36,11 @@
   </tr>
   <tr>
     <td width="50%" valign="top">
-      <h3><a href="https://github.com/mentasystems/gox">gox</a></h3>
+      <h3><a href="https://github.com/kidandcat/gox">gox</a></h3>
       Strict static analyzer for Go, aimed at LLM-written code.
     </td>
     <td width="50%" valign="top">
-      <h3><a href="https://github.com/mentasystems/fragua">fragua</a> · <a href="https://mentasystems.github.io/fragua/">site</a></h3>
+      <h3><a href="https://github.com/kidandcat/fragua">fragua</a> · <a href="https://kidandcat.github.io/fragua/">site</a></h3>
       AI-native PCB design.
     </td>
   </tr>
